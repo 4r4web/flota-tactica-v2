@@ -21,7 +21,9 @@ export function LobbyScreen() {
       <div className="mx-auto mt-10 max-w-md rounded-xl border border-sea-700 bg-sea-900 p-6 text-center">
         <h2 className="text-base font-bold text-mint">Sala creada</h2>
         <p className="mt-2 text-sm text-muted">Comparte este código con tu rival:</p>
-        <p className="mt-3 text-4xl font-black tracking-[0.3em] text-ink">{roomCode}</p>
+        <p className="mt-3 text-4xl font-black tracking-[0.3em] text-ink" data-testid="room-code">
+          {roomCode}
+        </p>
         <button
           type="button"
           onClick={() => {

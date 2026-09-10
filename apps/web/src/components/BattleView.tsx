@@ -183,6 +183,7 @@ export function BattleView({ view }: { view: PlayerView }) {
             <button
               key={ship.id}
               type="button"
+              data-testid={`ship-${ship.id}`}
               disabled={ship.hp <= 0}
               onClick={() => selectShip(ship.id)}
               className={cn(

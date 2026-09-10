@@ -41,3 +41,66 @@ jobs:
 
       - name: Test
         run: pnpm test
+
+  e2e:
+    needs: ci
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: flota
+          POSTGRES_PASSWORD: flota
+          POSTGRES_DB: flota
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U flota"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgres://flota:flota@localhost:5432/flota
+      REDIS_URL: redis://localhost:6379
+      JWT_SECRET: ci-secret-ci-secret
+      PLAYWRIGHT_CHANNEL: chrome
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.3.4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply database migrations
+        run: pnpm --filter @flota/server exec drizzle-kit migrate
+
+      - name: End-to-end tests
+        run: pnpm test:e2e
+
+      - name: Upload traces on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: test-results/
+          retention-days: 7

@@ -372,4 +372,25 @@ describe('WebSocket game flow', () => {
     host.close();
     guest.close();
   });
+
+  it('notifies the opponent when a player abandons', async () => {
+    const { host, guest, gameId } = await openPrivateRoom();
+
+    host.send(message('game.leave', { gameId }));
+    const abandoned = await guest.waitFor('game.abandoned');
+    expect((abandoned as unknown as { gameId: string }).gameId).toBe(gameId);
+
+    host.close();
+    guest.close();
+  });
+
+  it('notifies the opponent when a player disconnects', async () => {
+    const { host, guest } = await openPrivateRoom();
+
+    guest.close();
+    const presence = await host.waitFor('game.presence');
+    expect((presence as unknown as { opponentOnline: boolean }).opponentOnline).toBe(false);
+
+    host.close();
+  });
 });

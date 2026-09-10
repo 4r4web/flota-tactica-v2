@@ -75,6 +75,24 @@ function broadcastState(hub: ConnectionHub, stored: StoredGame): void {
   }
 }
 
+function broadcastPresence(hub: ConnectionHub, stored: StoredGame): void {
+  const refs = playerRefs(stored);
+  for (const ref of refs) {
+    if (ref.userId === null) {
+      continue;
+    }
+    const opponent = refs.find((candidate) => candidate.role !== ref.role);
+    const opponentOnline = opponent?.userId != null && hub.isOnline(opponent.userId);
+    hub.send(
+      ref.userId,
+      serverMessage('game.presence', {
+        gameId: stored.state.id,
+        opponentOnline,
+      }),
+    );
+  }
+}
+
 interface HandlerContext {
   deps: AppDeps;
   hub: ConnectionHub;
@@ -225,6 +243,15 @@ async function handleMessage(ctx: HandlerContext, userId: string, raw: RawData):
           view: viewFor(resumed.stored.state, resumed.role),
         }),
       );
+      broadcastPresence(hub, resumed.stored);
+      return;
+    }
+
+    case 'game.leave': {
+      const { opponentUserId } = await service.leave(userId, message.gameId);
+      if (opponentUserId !== null) {
+        hub.send(opponentUserId, serverMessage('game.abandoned', { gameId: message.gameId }));
+      }
       return;
     }
   }
@@ -248,6 +275,16 @@ function attachSocket(ctx: HandlerContext, socket: WebSocket, userId: string): v
   socket.on('close', () => {
     clearInterval(heartbeat);
     hub.remove(userId, socket);
+    if (!hub.isOnline(userId)) {
+      void ctx.service
+        .activeGame(userId)
+        .then((stored) => {
+          if (stored !== null) {
+            broadcastPresence(hub, stored);
+          }
+        })
+        .catch(() => undefined);
+    }
   });
 }
 
@@ -278,6 +315,14 @@ export function wsRoutes(
         }
         if (socket.readyState === OPEN) {
           attachSocket(ctx, socket, userId);
+          void service
+            .activeGame(userId)
+            .then((stored) => {
+              if (stored !== null) {
+                broadcastPresence(hub, stored);
+              }
+            })
+            .catch(() => undefined);
         }
       })();
     });

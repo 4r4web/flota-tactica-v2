@@ -26,10 +26,14 @@ export interface GameStore {
   remove(gameId: string): Promise<void>;
   setCode(code: string, gameId: string): Promise<void>;
   findByCode(code: string): Promise<string | null>;
+  setActive(userId: string, gameId: string): Promise<void>;
+  getActive(userId: string): Promise<string | null>;
+  clearActive(userId: string): Promise<void>;
 }
 
 const gameKey = (id: string): string => `game:${id}`;
 const codeKey = (code: string): string => `room:${code}`;
+const activeKey = (userId: string): string => `user:${userId}:active`;
 
 export function createGameStore(redis: RedisClient): GameStore {
   return {
@@ -66,6 +70,18 @@ export function createGameStore(redis: RedisClient): GameStore {
 
     async findByCode(code) {
       return redis.get(codeKey(code));
+    },
+
+    async setActive(userId, gameId) {
+      await redis.set(activeKey(userId), gameId, 'EX', GAME_TTL_SECONDS);
+    },
+
+    async getActive(userId) {
+      return redis.get(activeKey(userId));
+    },
+
+    async clearActive(userId) {
+      await redis.del(activeKey(userId));
     },
   };
 }

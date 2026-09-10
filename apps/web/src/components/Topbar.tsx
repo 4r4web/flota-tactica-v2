@@ -15,6 +15,8 @@ export function Topbar({ onOpenRules }: { onOpenRules: () => void }) {
   const logout = useAuth((state) => state.logout);
   const status = useGame((state) => state.status);
   const disconnect = useGame((state) => state.disconnect);
+  const gameId = useGame((state) => state.gameId);
+  const leave = useGame((state) => state.leave);
 
   const handleLogout = () => {
     disconnect();
@@ -48,6 +50,16 @@ export function Topbar({ onOpenRules }: { onOpenRules: () => void }) {
         >
           Cómo jugar
         </button>
+
+        {gameId !== null && (
+          <button
+            type="button"
+            onClick={leave}
+            className="rounded-md border border-sea-700 px-3 py-1 text-ink hover:border-coral hover:text-coral"
+          >
+            Abandonar
+          </button>
+        )}
 
         {user !== null && (
           <>

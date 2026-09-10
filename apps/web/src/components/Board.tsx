@@ -68,7 +68,7 @@ export function Board({
   const incomingSet = new Set(incoming);
 
   return (
-    <section className="rounded-xl border border-sea-700 bg-sea-900 p-3">
+    <section className="rounded-xl border border-sea-700 bg-sea-900 p-3" aria-label={label}>
       <header className="mb-2 flex items-baseline justify-between">
         <h2 className="text-sm font-semibold tracking-wide text-ink">{label}</h2>
         <span className="text-[10px] uppercase tracking-widest text-muted">10 × 10</span>

@@ -16,6 +16,7 @@ export const ClientMessage = z.discriminatedUnion('type', [
   z.object({ ...base, type: z.literal('room.create') }),
   z.object({ ...base, type: z.literal('room.join'), code: z.string().min(1).max(32) }),
   z.object({ ...base, type: z.literal('room.leave'), gameId: z.string().uuid() }),
+  z.object({ ...base, type: z.literal('game.leave'), gameId: z.string().uuid() }),
   z.object({ ...base, type: z.literal('matchmaking.enqueue') }),
   z.object({ ...base, type: z.literal('matchmaking.cancel') }),
   z.object({
@@ -104,6 +105,13 @@ export const ServerMessage = z.discriminatedUnion('type', [
     epoch: z.number().int().min(0),
     view: PlayerView,
   }),
+  z.object({
+    ...base,
+    type: z.literal('game.presence'),
+    gameId: z.string().uuid(),
+    opponentOnline: z.boolean(),
+  }),
+  z.object({ ...base, type: z.literal('game.abandoned'), gameId: z.string().uuid() }),
   z.object({
     ...base,
     type: z.literal('error'),

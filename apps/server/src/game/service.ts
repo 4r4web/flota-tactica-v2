@@ -36,6 +36,8 @@ export interface GameService {
   ): Promise<LoadedGame & { result: ActionResult }>;
   rematch(userId: string, gameId: string, epoch: number): Promise<LoadedGame>;
   resume(userId: string, gameId: string): Promise<LoadedGame | null>;
+  leave(userId: string, gameId: string): Promise<{ opponentUserId: string | null }>;
+  activeGame(userId: string): Promise<StoredGame | null>;
 }
 
 const MATCHMAKING_QUEUE = 'matchmaking:queue';
@@ -98,6 +100,7 @@ export function createGameService(deps: AppDeps): GameService {
       };
       await store.create(stored);
       await createGameRecord(deps.db, gameId, 'private');
+      await store.setActive(userId, gameId);
       return { stored, role: 'host' };
     },
 
@@ -119,6 +122,7 @@ export function createGameService(deps: AppDeps): GameService {
         }
         stored.meta.guestUserId = userId;
         await store.save(stored);
+        await store.setActive(userId, gameId);
         return { stored, role: 'guest' as const };
       });
     },
@@ -145,6 +149,8 @@ export function createGameService(deps: AppDeps): GameService {
       };
       await store.create(stored);
       await createGameRecord(deps.db, gameId, 'matchmaking');
+      await store.setActive(hostUserId, gameId);
+      await store.setActive(guestUserId, gameId);
       return stored;
     },
 
@@ -208,6 +214,41 @@ export function createGameService(deps: AppDeps): GameService {
         return null;
       }
       return { stored, role: roleOf(stored, userId) };
+    },
+
+    async leave(userId, gameId) {
+      return withLock(gameId, async () => {
+        const stored = await store.get(gameId);
+        if (stored === null) {
+          await store.clearActive(userId);
+          return { opponentUserId: null };
+        }
+
+        let role: Role;
+        try {
+          role = roleOf(stored, userId);
+        } catch {
+          await store.clearActive(userId);
+          return { opponentUserId: null };
+        }
+
+        const opponentUserId = role === 'host' ? stored.meta.guestUserId : stored.meta.hostUserId;
+
+        await store.remove(gameId);
+        await store.clearActive(stored.meta.hostUserId);
+        if (stored.meta.guestUserId !== null) {
+          await store.clearActive(stored.meta.guestUserId);
+        }
+        return { opponentUserId };
+      });
+    },
+
+    async activeGame(userId) {
+      const gameId = await store.getActive(userId);
+      if (gameId === null) {
+        return null;
+      }
+      return store.get(gameId);
     },
   };
 }

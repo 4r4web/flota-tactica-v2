@@ -7,6 +7,7 @@
     "build": "pnpm -r --if-present build",
     "dev": "pnpm -r --parallel --if-present dev",
     "test": "pnpm -r --if-present test",
+    "test:e2e": "playwright test",
     "lint": "oxlint .",
     "format": "oxfmt .",
     "format:check": "oxfmt --check .",
@@ -15,6 +16,7 @@
     "db:down": "docker compose -f docker/compose.yml down"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "oxfmt": "^0.61.0",
     "oxlint": "^1.76.0",
     "typescript": "^5.9.3"

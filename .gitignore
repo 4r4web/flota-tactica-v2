@@ -3,6 +3,8 @@ dist/
 coverage/
 .vite/
 .turbo/
+playwright-report/
+test-results/
 
 # Entorno
 .env

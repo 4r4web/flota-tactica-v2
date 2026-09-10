@@ -38,6 +38,7 @@ pnpm db:up          # levantar PostgreSQL y Redis (Docker)
 pnpm dev            # servidor y web en modo desarrollo
 pnpm build          # compilar todos los paquetes y apps
 pnpm test           # pruebas unitarias e integración
+pnpm test:e2e       # pruebas end-to-end (Playwright)
 pnpm lint           # análisis estático
 pnpm typecheck      # comprobación de tipos
 pnpm format         # formateo de código
@@ -64,11 +65,11 @@ Para jugar en local: `pnpm db:up`, `pnpm --filter @flota/server exec drizzle-kit
 | 1 — Dominio y protocolo | ✅ Completada |
 | 2 — Servidor autoritativo | ✅ Completada |
 | 3 — Cliente PWA | ✅ Completada |
-| 4 — Matchmaking y ciclo | ⏳ Próxima |
-| 5 — Endurecimiento y despliegue | Pendiente |
+| 4 — Matchmaking y ciclo | ✅ Completada |
+| 5 — Endurecimiento y despliegue | ⏳ Próxima |
 | 6 — Lanzamiento | Pendiente |
 
-El servidor autoritativo ofrece registro/login (email + JWT), salas privadas, matchmaking y el bucle de partida completo por WebSocket, con persistencia en PostgreSQL y estado en Redis. La **PWA** (`apps/web`) cubre registro/login, lobby, construcción y colocación de flota, tablero 10×10, command deck, reglas, reconexión y manejo de errores tipados.
+El servidor autoritativo ofrece registro/login (email + JWT), salas privadas, matchmaking, el bucle de partida completo por WebSocket y el **ciclo de vida** (presencia del rival, abandono y reanudación tras recargar). La **PWA** (`apps/web`) cubre registro/login, lobby, construcción y colocación de flota, tablero 10×10, command deck, reglas, reconexión y manejo de errores tipados. Hay pruebas **E2E con Playwright** de los flujos críticos.
 
 ## Demo de partida (sin frontend)
 
