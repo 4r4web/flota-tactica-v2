@@ -1,6 +1,18 @@
 node_modules/
 dist/
+coverage/
+.vite/
+.turbo/
+
+# Entorno
 .env
-.env.local
+.env.*
+!.env.example
+
+# Logs
 *.log
+pnpm-debug.log*
+
+# Sistema
 .DS_Store
+Thumbs.db

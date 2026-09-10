@@ -1,0 +1,8 @@
+# Documentación: se mantiene con formato manual (diagramas ASCII)
+docs/
+*.md
+
+# Generados
+dist/
+coverage/
+pnpm-lock.yaml
