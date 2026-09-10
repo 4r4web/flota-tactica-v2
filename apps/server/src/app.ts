@@ -25,6 +25,24 @@ function isZodError(error: unknown): boolean {
 export async function buildApp(deps: AppDeps) {
   const app = Fastify({ loggerInstance: deps.logger });
 
+  app.setErrorHandler((error, request, reply) => {
+    if (isAppError(error)) {
+      return reply
+        .code(error.statusCode)
+        .send({ error: { code: error.code, message: error.message } });
+    }
+    if (isZodError(error)) {
+      return reply
+        .code(400)
+        .send({ error: { code: 'INVALID_ACTION', message: 'invalid request payload' } });
+    }
+    if (isDomainError(error)) {
+      return reply.code(400).send({ error: { code: 'INVALID_ACTION', message: error.message } });
+    }
+    request.log.error({ err: error }, 'unhandled error');
+    return reply.code(500).send({ error: { code: 'INTERNAL', message: 'internal error' } });
+  });
+
   await app.register(cors, { origin: true });
   await app.register(websocket);
 
@@ -53,24 +71,6 @@ export async function buildApp(deps: AppDeps) {
       redis,
       protocol: PROTOCOL_VERSION,
     };
-  });
-
-  app.setErrorHandler((error, request, reply) => {
-    if (isAppError(error)) {
-      return reply
-        .code(error.statusCode)
-        .send({ error: { code: error.code, message: error.message } });
-    }
-    if (isZodError(error)) {
-      return reply
-        .code(400)
-        .send({ error: { code: 'INVALID_ACTION', message: 'invalid request payload' } });
-    }
-    if (isDomainError(error)) {
-      return reply.code(400).send({ error: { code: 'INVALID_ACTION', message: error.message } });
-    }
-    request.log.error({ err: error }, 'unhandled error');
-    return reply.code(500).send({ error: { code: 'INTERNAL', message: 'internal error' } });
   });
 
   return app;

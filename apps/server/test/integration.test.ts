@@ -284,6 +284,18 @@ describe('REST auth', () => {
     expect(typeof refreshed.accessToken).toBe('string');
   });
 
+  it('returns 400 for an invalid payload', async () => {
+    const response = await fetch(`${context.baseUrl}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ email: 'not-an-email', password: 'x' }),
+    });
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      error: { code: 'INVALID_ACTION' },
+    });
+  });
+
   it('rejects duplicate emails and bad credentials', async () => {
     const email = `dup-${randomUUID()}@example.com`;
     const payload = { email, password: 'password123', displayName: 'Dup' };
