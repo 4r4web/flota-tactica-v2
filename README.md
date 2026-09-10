@@ -1,11 +1,30 @@
 # Flota Táctica v2
 
-Juego táctico naval por turnos para 2 jugadores. Re-implementación con arquitectura de **servidor central** y **frontend instalable**.
+Juego táctico naval por turnos para 2 jugadores. Re-implementación con arquitectura de **servidor central autoritativo** y **frontend instalable (PWA)**.
 
 ## Documentación
 
-- [Especificación del juego](docs/especificacion-juego.md) — Reglas, dinámica, interfaz y protocolo completos.
+| Documento | Contenido |
+|---|---|
+| [Especificación del juego](docs/especificacion-juego.md) | Reglas, dinámica, interfaz y protocolo del prototipo 0.1 |
+| [01 — Decisiones (ADR)](docs/01-decisiones.md) | Registro de decisiones de arquitectura y proceso |
+| [02 — SDLC](docs/02-sdlc.md) | Metodología Kanban, sprints, calidad y CI/CD |
+| [03 — Arquitectura](docs/03-arquitectura.md) | Componentes, frontera de autoridad, flujo de datos |
+| [04 — Modelo de datos](docs/04-modelo-datos.md) | Esquema PostgreSQL (Drizzle) y claves Redis |
+| [05 — Protocolo](docs/05-protocolo.md) | Contrato REST/WebSocket con esquemas Zod |
+| [06 — Roadmap](docs/06-roadmap.md) | Fases, hitos y criterios de salida |
+
+## Resumen técnico
+
+- **Stack:** TypeScript · Node.js · React 19 + Vite · PostgreSQL + Redis · Drizzle · WebSocket · Zod
+- **Estructura:** monorepo con pnpm workspaces (`apps/server`, `apps/web`, `packages/domain`, `packages/protocol`, `packages/config`)
+- **Despliegue:** VPS con Docker Compose y reverse proxy con TLS
+- **Metodología:** Kanban con sprints cortos
 
 ## Estado
 
-Fase de especificación. Próximo paso: definición del SDLC y arquitectura técnica.
+Fase de diseño. Próximo paso: **Fase 0 — Fundaciones** (ver [roadmap](docs/06-roadmap.md)).
+
+## Cómo contribuir
+
+Consulta la [metodología](docs/02-sdlc.md): ramas cortas, Conventional Commits, PR revisada y CI en verde.

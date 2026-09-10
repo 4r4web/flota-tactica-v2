@@ -1,0 +1,217 @@
+# 01 — Registro de Decisiones de Arquitectura (ADR)
+
+Este documento recoge las decisiones de arquitectura y proceso tomadas para Flota Táctica v2. Cada decisión sigue el formato **ADR** (contexto → decisión → consecuencias) y es estable salvo que se revise explícitamente.
+
+| ID | Decisión | Estado |
+|---|---|---|
+| ADR-001 | Arquitectura cliente-servidor autoritativa | Aceptada |
+| ADR-002 | Monorepo con pnpm workspaces | Aceptada |
+| ADR-003 | TypeScript en todo el stack | Aceptada |
+| ADR-004 | PWA React como cliente instalable | Aceptada |
+| ADR-005 | PostgreSQL + Redis como persistencia | Aceptada |
+| ADR-006 | Drizzle como ORM | Aceptada |
+| ADR-007 | WebSocket como canal de tiempo real | Aceptada |
+| ADR-008 | Paquete de dominio puro compartido con validación optimista | Aceptada |
+| ADR-009 | Registro de usuarios (email/contraseña + OAuth) | Aceptada |
+| ADR-010 | Salas privadas + matchmaking público | Aceptada |
+| ADR-011 | Despliegue en VPS con Docker | Aceptada |
+| ADR-012 | Metodología Kanban con sprints cortos | Aceptada |
+| ADR-013 | Idioma: código en inglés, UI y documentación en español | Aceptada |
+| ADR-014 | Información asimétrica y colisión solo contra flota propia | Aceptada |
+| ADR-015 | Validación de protocolo con Zod | Aceptada |
+
+---
+
+## ADR-001 — Arquitectura cliente-servidor autoritativa
+
+**Contexto.** El prototipo 0.1 usaba conexión directa P2P (WebRTC sin servidor) con un modelo de "cliente honesto": cada cliente poseía su propia flota y podía mentir sobre movimientos o impactos. Además, una desconexión perdía la partida y no había recuperación de estado.
+
+**Decisión.** Adoptar un **servidor central autoritativo**. El servidor posee el estado completo de la partida, valida todas las acciones y envía a cada jugador únicamente la vista que le corresponde. El cliente envía intenciones, nunca resultados.
+
+**Consecuencias.**
+- Positivas: anti-trampas real, estado consistente, reconexión sin pérdida, base para matchmaking y estadísticas futuras.
+- Negativas: se introduce infraestructura (servidor, base de datos, despliegue) y una dependencia de red; mayor coste operativo.
+
+---
+
+## ADR-002 — Monorepo con pnpm workspaces
+
+**Contexto.** Servidor, cliente y lógica de dominio deben compartir tipos y reglas sin duplicación.
+
+**Decisión.** Un único repositorio con **pnpm workspaces**, organizado en `apps/*` y `packages/*`.
+
+**Consecuencias.**
+- Positivas: contratos y reglas compartidos con un solo cambio atómico; CI unificada; refactors coordinados.
+- Negativas: configuración de build más compleja; acoplamiento de versiones entre paquetes.
+
+---
+
+## ADR-003 — TypeScript en todo el stack
+
+**Contexto.** El prototipo era JavaScript (`.mjs`). El dominio es rico en estructuras de datos y reglas que se benefician de tipado.
+
+**Decisión.** **TypeScript estricto** (`strict: true`) en todos los paquetes: dominio, protocolo, servidor y cliente.
+
+**Consecuencias.**
+- Positivas: errores detectados en compilación, tipado compartido cliente/servidor, mejor refactorización y autocompletado.
+- Negativas: paso de compilación adicional y disciplina de tipos.
+
+---
+
+## ADR-004 — PWA React como cliente instalable
+
+**Contexto.** Se necesita un cliente instalable para iPhone y Android sin pasar por tiendas de aplicaciones, y ya existe experiencia con React y con una PWA.
+
+**Decisión.** Cliente **React 19 + Vite** distribuido como **PWA** (service worker, manifiesto, instalable). Empaquetado como app nativa posible en una fase futura, no en el MVP.
+
+**Consecuencias.**
+- Positivas: multiplataforma, sin tiendas, reutiliza conocimiento del prototipo, caché offline para reglas y catálogo.
+- Negativas: capacidades nativas limitadas; el modo offline solo cubre contenido estático (las partidas requieren conexión).
+
+---
+
+## ADR-005 — PostgreSQL + Redis como persistencia
+
+**Contexto.** Se necesitan datos relacionales duraderos (usuarios, historial) y estado efímero de alta frecuencia (sesiones, matchmaking, partidas en vivo).
+
+**Decisión.** **PostgreSQL** para datos persistentes y **Redis** para sesiones, cola de matchmaking, estado de partidas activas y pub/sub.
+
+**Consecuencias.**
+- Positivas: cada motor se usa para lo que es idóneo; Redis habilita tiempo real y escalado horizontal del WebSocket.
+- Negativas: dos sistemas que operar y respaldar.
+
+---
+
+## ADR-006 — Drizzle como ORM
+
+**Contexto.** Se necesita acceso tipado a PostgreSQL sin la sobrecarga de un ORM pesado.
+
+**Decisión.** **Drizzle ORM** para el esquema y las consultas, con migraciones versionadas.
+
+**Consecuencias.**
+- Positivas: SQL cercano, tipado fuerte derivado del esquema, bajo peso en runtime, migraciones explícitas.
+- Negativas: ecosistema más joven que alternativas como Prisma; algunas abstracciones hay que escribirlas a mano.
+
+---
+
+## ADR-007 — WebSocket como canal de tiempo real
+
+**Contexto.** El juego es por turnos y requiere intercambio bidireccional de baja latencia.
+
+**Decisión.** **WebSocket** para el flujo de partida; **REST** para autenticación, perfil y operaciones no frecuentes.
+
+**Consecuencias.**
+- Positivas: comunicación bidireccional y eficiente, notificaciones de servidor, control de reconexión.
+- Negativas: hay que gestionar heartbeats, reconexión y (a futuro) pub/sub entre instancias.
+
+---
+
+## ADR-008 — Paquete de dominio puro compartido con validación optimista
+
+**Contexto.** Las reglas del juego deben ejecutarse de forma autoritativa en el servidor, pero el cliente se beneficia de feedback inmediato. El prototipo ya separaba el motor (`tactical.mjs`) de la interfaz.
+
+**Decisión.** Extraer un paquete **`@flota/domain`** puro (sin I/O ni red), compartido por servidor, cliente y tests. El cliente lo usa para **preview visual y validación optimista**; el servidor lo usa como **autoridad final**. El cliente nunca decide resultados dependientes de información oculta (impactos, contactos de sonar).
+
+**Consecuencias.**
+- Positivas: cero duplicación de reglas (mismo código en ambos lados), mejor UX, dominio testeable de forma aislada.
+- Negativas: la vista del cliente puede quedar desactualizada respecto al servidor; un rechazo puntual debe gestionarse con un error de UI y rollback visual.
+
+---
+
+## ADR-009 — Registro de usuarios (email/contraseña + OAuth)
+
+**Contexto.** El MVP requiere cuentas para matchmaking, historial de partidas y reconexión identificable.
+
+**Decisión.** Registro con **email y contraseña** (hash con Argon2) más **OAuth social** (Google y Apple como mínimo). Sesión mediante **access token JWT** de vida corta + **refresh token** rotativo almacenado en base de datos.
+
+**Consecuencias.**
+- Positivas: control propio de identidad y compatibilidad con proveedores externos; base para estadísticas futuras.
+- Negativas: obligaciones de RGPD (consentimiento, borrado de cuenta, protección de datos); más superficie de seguridad.
+
+---
+
+## ADR-010 — Salas privadas + matchmaking público
+
+**Contexto.** Dos jugadores conocidos deben poder jugar rápido, y también debe existir la opción de encontrar rival.
+
+**Decisión.** Dos vías: **salas privadas con código corto** y **cola de matchmaking público** gestionada en Redis.
+
+**Consecuencias.**
+- Positivas: cubre ambos casos de uso sin fricción.
+- Negativas: el matchmaking público requiere emparejamiento por criterios y, a futuro, moderación y gestión de abandonos.
+
+---
+
+## ADR-011 — Despliegue en VPS con Docker
+
+**Contexto.** Se busca control, coste predecible y soporte fiable de WebSocket persistente.
+
+**Decisión.** **VPS con Docker Compose**: `server`, `postgres`, `redis` y un reverse proxy (`Caddy` o `nginx`) con TLS. Despliegue automatizado por SSH desde CI.
+
+**Consecuencias.**
+- Positivas: control total, sin límites de plataformas serverless, WebSocket sin complicaciones.
+- Negativas: responsabilidad de operación, backups, actualizaciones de seguridad y monitorización.
+
+---
+
+## ADR-012 — Metodología Kanban con sprints cortos
+
+**Contexto.** Proyecto con un equipo reducido y un MVP acotado.
+
+**Decisión.** **Kanban** con **sprints de 1–2 semanas**. Cada fase produce un incremento verificable. Detalle en `02-sdlc.md`.
+
+**Consecuencias.**
+- Positivas: adaptabilidad, foco en flujo continuo, poca sobrecarga de proceso.
+- Negativas: requiere disciplina para limitar el trabajo en curso (WIP) y mantener el tablero actualizado.
+
+---
+
+## ADR-013 — Idioma: código en inglés, UI y documentación en español
+
+**Contexto.** El prototipo usa identificadores y comentarios en inglés, y textos de interfaz y documentación en español.
+
+**Decisión.** Mantener ese criterio: **código (identificadores y comentarios) en inglés**, **textos de interfaz y documentación en español**.
+
+**Consecuencias.**
+- Positivas: consistencia con el prototipo, código idiomático y documentación accesible al equipo.
+- Negativas: convivencia de dos idiomas que exige criterio claro en los límites (p. ej. mensajes de error de UI en español, logs en inglés).
+
+---
+
+## ADR-014 — Información asimétrica y colisión solo contra flota propia
+
+**Contexto.** En el prototipo, cada jugador solo conoce su flota y los resultados limitados de sus acciones. El rival es invisible y ocupa una capa lógica separada.
+
+**Decisión.** Mantener el modelo de **información asimétrica**: el servidor nunca revela al rival posiciones, PV ni objetivo de reparación. Las **colisiones de movimiento son solo contra la propia flota**; los barcos enemigos no bloquean el movimiento (hacerlo filtraría sus posiciones). El sonar revela celdas como parte explícita del juego.
+
+**Consecuencias.**
+- Positivas: preserva la tensión táctica y evita fugas de información; la validación de movimiento del cliente es exacta (solo depende de datos propios).
+- Negativas: hay que documentar con claridad la frontera entre lo público y lo privado y verificarla con tests.
+
+---
+
+## ADR-015 — Validación de protocolo con Zod
+
+**Contexto.** Todos los mensajes de cliente y servidor deben validarse de forma estricta para evitar estados inválidos y entradas maliciosas.
+
+**Decisión.** Definir los contratos de mensajes en **`@flota/protocol`** con esquemas **Zod**, compartidos por ambos lados y usados en el servidor como puerta de validación.
+
+**Consecuencias.**
+- Positivas: una sola fuente de verdad para los contratos, tipado inferido, validación en runtime.
+- Negativas: dependencia adicional y coste de mantenimiento de los esquemas.
+
+---
+
+## Plantilla para nuevas decisiones
+
+```
+## ADR-0XX — Título
+
+**Contexto.** ...
+
+**Decisión.** ...
+
+**Consecuencias.**
+- Positivas: ...
+- Negativas: ...
+```
