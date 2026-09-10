@@ -14,6 +14,7 @@ import type { AppDeps } from './deps.js';
 import { isAppError } from './errors.js';
 import { createGameService } from './game/service.js';
 import { createMetrics } from './infra/metrics.js';
+import { APP_VERSION } from './version.js';
 import { createConnectionHub } from './ws/connections.js';
 import { wsRoutes } from './ws/gateway.js';
 
@@ -118,6 +119,8 @@ export async function buildApp(deps: AppDeps) {
       postgres,
       redis,
       protocol: PROTOCOL_VERSION,
+      version: APP_VERSION,
+      uptime: Math.round(process.uptime()),
     };
   });
 

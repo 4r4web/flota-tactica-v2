@@ -11,6 +11,16 @@
     reverse_proxy server:3000
   }
 
+  @health path /health
+  handle @health {
+    reverse_proxy server:3000
+  }
+
+  @metrics path /metrics
+  handle @metrics {
+    respond 403
+  }
+
   handle {
     reverse_proxy web:80
   }

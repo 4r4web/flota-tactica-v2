@@ -6,6 +6,7 @@ import { Topbar } from './components/Topbar';
 import { AuthScreen } from './screens/AuthScreen';
 import { GameScreen } from './screens/GameScreen';
 import { LobbyScreen } from './screens/LobbyScreen';
+import { StatusScreen } from './screens/StatusScreen';
 import { useAuth } from './store/auth';
 import { useGame } from './store/game';
 
@@ -25,21 +26,25 @@ export function App() {
     }
   }, [accessToken, connect]);
 
+  const onStatusPage = window.location.pathname === '/status';
   const waitingForOpponent = roomCode !== null && players < 2;
+
+  let body: React.ReactNode;
+  if (onStatusPage) {
+    body = <StatusScreen />;
+  } else if (user === null) {
+    body = <AuthScreen />;
+  } else if (view === null || waitingForOpponent) {
+    body = <LobbyScreen />;
+  } else {
+    body = <GameScreen view={view} />;
+  }
 
   return (
     <div className="flex min-h-full flex-col">
       <Topbar onOpenRules={() => setRulesOpen(true)} />
 
-      <main className="mx-auto w-full max-w-5xl flex-1 p-4">
-        {user === null ? (
-          <AuthScreen />
-        ) : view === null || waitingForOpponent ? (
-          <LobbyScreen />
-        ) : (
-          <GameScreen view={view} />
-        )}
-      </main>
+      <main className="mx-auto w-full max-w-5xl flex-1 p-4">{body}</main>
 
       <ErrorToast />
       {rulesOpen && <RulesModal onClose={() => setRulesOpen(false)} />}

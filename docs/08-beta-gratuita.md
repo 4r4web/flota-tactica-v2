@@ -97,7 +97,22 @@ Abre `https://<DOMAIN>` en el móvil e instálala como PWA.
 
 ---
 
-## 6. Actualizar la beta
+## 6. Límites recomendados para la beta
+
+Al ser una beta con recursos limitados, conviene endurecer los límites en `.env.prod`:
+
+```
+RATE_LIMIT_MAX=60
+RATE_LIMIT_WINDOW=1 minute
+AUTH_RATE_LIMIT_MAX=5
+BODY_LIMIT=8192
+```
+
+La página **`https://<DOMAIN>/status`** muestra el estado del servicio (servidor, PostgreSQL, Redis, conexión WebSocket, versión y tiempo activo) para que los testers puedan comprobar la disponibilidad.
+
+---
+
+## 7. Actualizar la beta
 
 ```bash
 cd flota-tactica-v2
@@ -108,7 +123,7 @@ docker compose --env-file .env.prod -f docker/compose.prod.yml run --rm server n
 
 ---
 
-## 7. Despliegue continuo (opcional)
+## 8. Despliegue continuo (opcional)
 
 El workflow `deploy.yml` publica imágenes multi-arquitectura en GHCR y despliega por SSH. Para usarlo con Oracle:
 
@@ -123,7 +138,7 @@ WEB_IMAGE=ghcr.io/4r4web/flota-web:latest
 
 ---
 
-## 8. Límites y notas
+## 9. Límites y notas
 
 - La capa *Always Free* es **real y sin caducidad**, pero Oracle puede reclamar recursos si la VM está inactiva; mantén un uso mínimo.
 - El ancho de banda de salida es de 10 TB/mes (de sobra para la beta).
@@ -132,7 +147,7 @@ WEB_IMAGE=ghcr.io/4r4web/flota-web:latest
 
 ---
 
-## 9. Alternativas gratuitas
+## 10. Alternativas gratuitas
 
 Si no consigues aprovisionar la VM ARM de Oracle:
 

@@ -13,7 +13,9 @@ RUN pnpm --filter @flota/domain build \
  && pnpm --filter @flota/server build
 
 FROM base AS runtime
+ARG APP_VERSION=dev
 ENV NODE_ENV=production
+ENV APP_VERSION=${APP_VERSION}
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/packages ./packages
 COPY --from=build /app/apps/server ./apps/server

@@ -30,6 +30,9 @@ export function Topbar({ onOpenRules }: { onOpenRules: () => void }) {
           ⚓
         </span>
         <h1 className="text-sm font-bold tracking-[0.2em] text-mint">FLOTA TÁCTICA</h1>
+        <span className="rounded bg-amber/20 px-1.5 py-0.5 text-[9px] font-semibold tracking-widest text-amber">
+          BETA
+        </span>
       </div>
 
       <div className="flex items-center gap-3 text-xs">
@@ -42,6 +45,13 @@ export function Topbar({ onOpenRules }: { onOpenRules: () => void }) {
           />
           {STATUS_LABEL[status] ?? status}
         </span>
+
+        <a
+          href="/status"
+          className="rounded-md border border-sea-700 px-3 py-1 text-ink hover:border-mint hover:text-mint"
+        >
+          Estado
+        </a>
 
         <button
           type="button"
