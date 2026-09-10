@@ -14,6 +14,7 @@ Juego táctico naval por turnos para 2 jugadores. Re-implementación con arquite
 | [05 — Protocolo](docs/05-protocolo.md) | Contrato REST/WebSocket con esquemas Zod |
 | [06 — Roadmap](docs/06-roadmap.md) | Fases, hitos y criterios de salida |
 | [07 — Despliegue](docs/07-despliegue.md) | Docker, Caddy, CD, backups y operación |
+| [08 — Beta gratuita](docs/08-beta-gratuita.md) | Despliegue con coste 0 (Oracle Cloud Always Free) |
 
 ## Estructura
 
@@ -50,6 +51,8 @@ Despliegue en producción (ver [guía de despliegue](docs/07-despliegue.md)):
 ```bash
 docker compose --env-file .env.prod -f docker/compose.prod.yml up -d
 ```
+
+Para la **beta con coste 0** en Oracle Cloud Always Free, sigue la [guía de beta gratuita](docs/08-beta-gratuita.md).
 
 Prueba de carga (requiere [k6](https://k6.io)):
 

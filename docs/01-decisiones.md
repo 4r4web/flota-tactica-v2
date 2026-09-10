@@ -29,6 +29,7 @@ Este documento recoge las decisiones de arquitectura y proceso tomadas para Flot
 | ADR-023 | Observabilidad con Prometheus (`/metrics`) | Aceptada |
 | ADR-024 | Despliegue con Docker Compose y Caddy (TLS) | Aceptada |
 | ADR-025 | CD a GHCR y despliegue por SSH | Aceptada |
+| ADR-026 | Beta con coste 0 en Oracle Cloud Always Free | Aceptada |
 
 ---
 
@@ -329,6 +330,18 @@ Este documento recoge las decisiones de arquitectura y proceso tomadas para Flot
 **Consecuencias.**
 - Positivas: despliegue reproducible y trazable (imágenes etiquetadas por commit).
 - Negativas: requiere secretos de VPS en GitHub y acceso del VPS a GHCR.
+
+---
+
+## ADR-026 — Beta con coste 0 en Oracle Cloud Always Free
+
+**Contexto.** La fase de beta debe tener **coste 0**; más adelante se valorarán opciones de pago o alternativas gratuitas para producción. El juego necesita conexiones WebSocket persistentes, lo que descarta hosts gratuitos que duermen el servicio.
+
+**Decisión.** Desplegar la beta en una **VM ARM de Oracle Cloud Always Free** con el mismo `docker compose` de producción (PostgreSQL, Redis, servidor, web y Caddy) y un **subdominio gratuito** (`sslip.io` o DuckDNS) con TLS automático. Las imágenes se construyen **multi-arquitectura** y la VM puede compilar en local sin registro.
+
+**Consecuencias.**
+- Positivas: coste 0 real y sin caducidad, WebSocket estable, sin cambios de código, TLS gratuito; migración futura a un VPS de pago sin tocar el código.
+- Negativas: aprovisionar la VM ARM puede ser complicado; sin alta disponibilidad; la operación (backups, seguridad) sigue siendo responsabilidad propia.
 
 ---
 

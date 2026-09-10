@@ -29,7 +29,10 @@ services:
       retries: 10
 
   server:
-    image: ${SERVER_IMAGE:-ghcr.io/4r4web/flota-server:latest}
+    image: ${SERVER_IMAGE:-flota-server:local}
+    build:
+      context: ..
+      dockerfile: docker/server.Dockerfile
     restart: unless-stopped
     environment:
       NODE_ENV: production
@@ -47,7 +50,10 @@ services:
         condition: service_healthy
 
   web:
-    image: ${WEB_IMAGE:-ghcr.io/4r4web/flota-web:latest}
+    image: ${WEB_IMAGE:-flota-web:local}
+    build:
+      context: ..
+      dockerfile: docker/web.Dockerfile
     restart: unless-stopped
 
   caddy:
