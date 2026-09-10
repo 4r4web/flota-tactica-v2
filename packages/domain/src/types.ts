@@ -93,6 +93,7 @@ export interface EnemyShipView {
 export interface PlayerView {
   gameId: string;
   epoch: number;
+  seq: number;
   phase: Phase;
   turn: number;
   ap: number;

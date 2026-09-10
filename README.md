@@ -44,7 +44,10 @@ pnpm format         # formateo de código
 ```
 
 - Servidor de desarrollo: http://localhost:3000 (`GET /health`)
-- Cliente de desarrollo: http://localhost:5173
+- Cliente de desarrollo: http://localhost:5173 (proxy a `/api` y `/ws`)
+
+Para jugar en local: `pnpm db:up`, `pnpm --filter @flota/server exec drizzle-kit migrate` y
+`pnpm dev` (arranca servidor y web). Abre http://localhost:5173, regístrate y crea o únete a una sala.
 
 ## Resumen técnico
 
@@ -60,12 +63,12 @@ pnpm format         # formateo de código
 | 0 — Fundaciones | ✅ Completada |
 | 1 — Dominio y protocolo | ✅ Completada |
 | 2 — Servidor autoritativo | ✅ Completada |
-| 3 — Cliente PWA | ⏳ Próxima |
-| 4 — Matchmaking y ciclo | Pendiente |
+| 3 — Cliente PWA | ✅ Completada |
+| 4 — Matchmaking y ciclo | ⏳ Próxima |
 | 5 — Endurecimiento y despliegue | Pendiente |
 | 6 — Lanzamiento | Pendiente |
 
-El servidor autoritativo ya ofrece registro/login (email + JWT), salas privadas, matchmaking y el bucle de partida completo por WebSocket, con persistencia en PostgreSQL y estado en Redis. `@flota/domain` valida todas las acciones y filtra las vistas por jugador.
+El servidor autoritativo ofrece registro/login (email + JWT), salas privadas, matchmaking y el bucle de partida completo por WebSocket, con persistencia en PostgreSQL y estado en Redis. La **PWA** (`apps/web`) cubre registro/login, lobby, construcción y colocación de flota, tablero 10×10, command deck, reglas, reconexión y manejo de errores tipados.
 
 ## Demo de partida (sin frontend)
 

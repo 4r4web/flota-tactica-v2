@@ -80,6 +80,7 @@ describe('PlayerView', () => {
   const view = {
     gameId: id,
     epoch: 0,
+    seq: 0,
     phase: 'turn',
     turn: 0,
     ap: 2,

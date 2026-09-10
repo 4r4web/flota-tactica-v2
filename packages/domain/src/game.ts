@@ -462,6 +462,7 @@ export function viewFor(state: GameState, role: Role): PlayerView {
   return {
     gameId: state.id,
     epoch: state.epoch,
+    seq: state.seq,
     phase: phaseFor(state, role),
     turn: state.turn,
     ap: state.ap,

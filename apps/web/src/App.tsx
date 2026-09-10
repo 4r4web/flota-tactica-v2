@@ -1,8 +1,44 @@
+import { useEffect, useState } from 'react';
+
+import { ErrorToast } from './components/ErrorToast';
+import { RulesModal } from './components/RulesModal';
+import { Topbar } from './components/Topbar';
+import { AuthScreen } from './screens/AuthScreen';
+import { GameScreen } from './screens/GameScreen';
+import { LobbyScreen } from './screens/LobbyScreen';
+import { useAuth } from './store/auth';
+import { useGame } from './store/game';
+
 export function App() {
+  const [rulesOpen, setRulesOpen] = useState(false);
+
+  const user = useAuth((state) => state.user);
+  const accessToken = useAuth((state) => state.accessToken);
+  const connect = useGame((state) => state.connect);
+  const view = useGame((state) => state.view);
+
+  useEffect(() => {
+    if (accessToken !== null) {
+      connect(accessToken);
+    }
+  }, [accessToken, connect]);
+
   return (
-    <main className="app">
-      <h1>Flota Táctica v2</h1>
-      <p>Fundaciones del monorepo — Fase 0.</p>
-    </main>
+    <div className="flex min-h-full flex-col">
+      <Topbar onOpenRules={() => setRulesOpen(true)} />
+
+      <main className="mx-auto w-full max-w-5xl flex-1 p-4">
+        {user === null ? (
+          <AuthScreen />
+        ) : view === null ? (
+          <LobbyScreen />
+        ) : (
+          <GameScreen view={view} />
+        )}
+      </main>
+
+      <ErrorToast />
+      {rulesOpen && <RulesModal onClose={() => setRulesOpen(false)} />}
+    </div>
   );
 }

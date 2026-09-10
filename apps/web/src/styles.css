@@ -1,20 +1,38 @@
-:root {
-  color-scheme: dark;
-  font-family:
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    sans-serif;
+@import 'tailwindcss';
+
+@theme {
+  --color-sea-950: #081a25;
+  --color-sea-900: #0c2431;
+  --color-sea-800: #12303f;
+  --color-sea-700: #1c3d4d;
+  --color-sea-600: #2a5364;
+  --color-ink: #e6f1f5;
+  --color-muted: #8fb0bd;
+  --color-mint: #4fd1c5;
+  --color-amber: #f6ad55;
+  --color-coral: #fc8181;
+  --font-sans: system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+html,
+body,
+#root {
+  height: 100%;
 }
 
 body {
   margin: 0;
-  background: #081a25;
-  color: #e6f1f5;
+  background: var(--color-sea-950);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
 }
 
-.app {
-  max-width: 48rem;
-  margin: 0 auto;
-  padding: 4rem 1.5rem;
+button {
+  font: inherit;
+}
+
+input,
+select {
+  font: inherit;
 }

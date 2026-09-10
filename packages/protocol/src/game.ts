@@ -84,6 +84,7 @@ export const EnemyShip = z.object({
 export const PlayerView = z.object({
   gameId: z.string().uuid(),
   epoch: z.number().int().min(0),
+  seq: z.number().int().min(0),
   phase: Phase,
   turn: z.number().int().min(0),
   ap: z.number().int().min(0),
