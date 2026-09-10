@@ -21,6 +21,7 @@
     "lint": "oxlint src test"
   },
   "dependencies": {
+    "@flota/domain": "workspace:*",
     "zod": "^4.0.0"
   },
   "devDependencies": {

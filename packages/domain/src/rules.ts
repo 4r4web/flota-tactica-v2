@@ -18,7 +18,10 @@ export const RULES = Object.freeze({
   repairRange: 2,
 });
 
-export type ShipId = 'scout' | 'sub' | 'frigate' | 'support' | 'destroyer' | 'dread';
+/** Canonical ship class identifiers. Order is the catalog display order. */
+export const SHIP_IDS = ['scout', 'sub', 'frigate', 'support', 'destroyer', 'dread'] as const;
+
+export type ShipId = (typeof SHIP_IDS)[number];
 
 export type Weapon = 'cannon' | 'torpedo';
 
@@ -126,8 +129,10 @@ export const CATALOG: Readonly<Record<ShipId, ShipSpec>> = Object.freeze({
   },
 });
 
-export const SHIP_IDS = Object.freeze(Object.keys(CATALOG) as ShipId[]);
-
 export function spec(id: ShipId): ShipSpec {
   return CATALOG[id];
+}
+
+export function isShipId(value: string): value is ShipId {
+  return (SHIP_IDS as readonly string[]).includes(value);
 }

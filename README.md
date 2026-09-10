@@ -55,7 +55,17 @@ pnpm format         # formateo de código
 
 ## Estado
 
-**Fase 0 — Fundaciones** completada: monorepo, tooling, CI, Docker y esqueletos de los paquetes. Próximo paso: **Fase 1 — Dominio y protocolo** (ver [roadmap](docs/06-roadmap.md)).
+| Fase | Estado |
+|---|---|
+| 0 — Fundaciones | ✅ Completada |
+| 1 — Dominio y protocolo | ✅ Completada |
+| 2 — Servidor autoritativo | ⏳ Próxima |
+| 3 — Cliente PWA | Pendiente |
+| 4 — Matchmaking y ciclo | Pendiente |
+| 5 — Endurecimiento y despliegue | Pendiente |
+| 6 — Lanzamiento | Pendiente |
+
+`@flota/domain` implementa el motor de reglas autoritativo (tablero, catálogo, colocación, movimiento, combate, habilidades, victoria y revancha) con vistas filtradas por jugador. `@flota/protocol` define los contratos REST y WebSocket con Zod. Ver [roadmap](docs/06-roadmap.md).
 
 ## Cómo contribuir
 

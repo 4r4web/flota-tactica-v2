@@ -145,7 +145,8 @@
 | Dirección | Cardinal: Norte (0,-1), Sur (0,1), Oeste (-1,0), Este (1,0) |
 | Distancia | 1 a `velocidad` casillas (entero) |
 | Restricción | Movimiento en línea recta, sin giros |
-| Colisión | Toda la trayectoria verificada: cada paso intermedio debe estar libre de barcos vivos |
+| Colisión | Toda la trayectoria verificada: cada paso intermedio debe estar libre de barcos vivos **de la propia flota** (el rival es invisible y nunca bloquea) |
+| Bordes | Sin envolvimiento: la proa no cruza el borde del tablero ni salta de fila |
 | Barcos hundidos (PV=0) | **No bloquean** el movimiento |
 | Átomo | Si cualquier paso falla, **todo el movimiento se rechaza** (sin movimiento parcial) |
 | Privacidad | Dirección, distancia y destino **nunca se envían** al rival |
