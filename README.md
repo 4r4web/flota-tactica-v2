@@ -13,6 +13,7 @@ Juego táctico naval por turnos para 2 jugadores. Re-implementación con arquite
 | [04 — Modelo de datos](docs/04-modelo-datos.md) | Esquema PostgreSQL (Drizzle) y claves Redis |
 | [05 — Protocolo](docs/05-protocolo.md) | Contrato REST/WebSocket con esquemas Zod |
 | [06 — Roadmap](docs/06-roadmap.md) | Fases, hitos y criterios de salida |
+| [07 — Despliegue](docs/07-despliegue.md) | Docker, Caddy, CD, backups y operación |
 
 ## Estructura
 
@@ -44,6 +45,18 @@ pnpm typecheck      # comprobación de tipos
 pnpm format         # formateo de código
 ```
 
+Despliegue en producción (ver [guía de despliegue](docs/07-despliegue.md)):
+
+```bash
+docker compose --env-file .env.prod -f docker/compose.prod.yml up -d
+```
+
+Prueba de carga (requiere [k6](https://k6.io)):
+
+```bash
+k6 run -e BASE_URL=http://localhost:3000 tests/load/match.js
+```
+
 - Servidor de desarrollo: http://localhost:3000 (`GET /health`)
 - Cliente de desarrollo: http://localhost:5173 (proxy a `/api` y `/ws`)
 
@@ -54,7 +67,9 @@ Para jugar en local: `pnpm db:up`, `pnpm --filter @flota/server exec drizzle-kit
 
 - **Stack:** TypeScript · Node.js · React 19 + Vite · PostgreSQL + Redis · Drizzle · WebSocket · Zod
 - **Estructura:** monorepo con pnpm workspaces
-- **Despliegue:** VPS con Docker Compose y reverse proxy con TLS
+- **Seguridad:** JWT + Argon2, rate limiting, helmet, validación estricta
+- **Observabilidad:** logs estructurados (pino) y métricas Prometheus (`/metrics`)
+- **Despliegue:** VPS con Docker Compose y reverse proxy con TLS (Caddy), CD a GHCR
 - **Metodología:** Kanban con sprints cortos
 
 ## Estado
@@ -66,8 +81,8 @@ Para jugar en local: `pnpm db:up`, `pnpm --filter @flota/server exec drizzle-kit
 | 2 — Servidor autoritativo | ✅ Completada |
 | 3 — Cliente PWA | ✅ Completada |
 | 4 — Matchmaking y ciclo | ✅ Completada |
-| 5 — Endurecimiento y despliegue | ⏳ Próxima |
-| 6 — Lanzamiento | Pendiente |
+| 5 — Endurecimiento y despliegue | ✅ Completada |
+| 6 — Lanzamiento | ⏳ Próxima |
 
 El servidor autoritativo ofrece registro/login (email + JWT), salas privadas, matchmaking, el bucle de partida completo por WebSocket y el **ciclo de vida** (presencia del rival, abandono y reanudación tras recargar). La **PWA** (`apps/web`) cubre registro/login, lobby, construcción y colocación de flota, tablero 10×10, command deck, reglas, reconexión y manejo de errores tipados. Hay pruebas **E2E con Playwright** de los flujos críticos.
 

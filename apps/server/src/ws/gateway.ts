@@ -13,6 +13,7 @@ import { AppError, isAppError } from '../errors.js';
 import { playerRefs } from '../game/service.js';
 import type { GameService } from '../game/service.js';
 import type { StoredGame } from '../game/store.js';
+import type { Metrics } from '../infra/metrics.js';
 import type { ConnectionHub } from './connections.js';
 
 const HEARTBEAT_MS = 30_000;
@@ -97,6 +98,7 @@ interface HandlerContext {
   deps: AppDeps;
   hub: ConnectionHub;
   service: GameService;
+  metrics?: Metrics;
 }
 
 async function handleMessage(ctx: HandlerContext, userId: string, raw: RawData): Promise<void> {
@@ -260,6 +262,7 @@ async function handleMessage(ctx: HandlerContext, userId: string, raw: RawData):
 function attachSocket(ctx: HandlerContext, socket: WebSocket, userId: string): void {
   const { hub } = ctx;
   hub.add(userId, socket);
+  ctx.metrics?.wsConnections.inc();
 
   const heartbeat = setInterval(() => {
     hub.send(userId, serverMessage('ping', {}));
@@ -292,8 +295,9 @@ export function wsRoutes(
   deps: AppDeps,
   hub: ConnectionHub,
   service: GameService,
+  metrics?: Metrics,
 ): FastifyPluginAsync {
-  const ctx: HandlerContext = { deps, hub, service };
+  const ctx: HandlerContext = { deps, hub, service, metrics };
 
   return async (app) => {
     app.get('/ws', { websocket: true }, (socket, request) => {

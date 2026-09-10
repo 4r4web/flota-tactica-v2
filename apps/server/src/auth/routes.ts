@@ -12,20 +12,28 @@ import { createAuthService } from './service.js';
 
 export function authRoutes(deps: AppDeps): FastifyPluginAsync {
   const service = createAuthService(deps.db, deps.tokens);
+  const strictRateLimit = {
+    config: {
+      rateLimit: {
+        max: deps.config.authRateLimitMax,
+        timeWindow: deps.config.rateLimitWindow,
+      },
+    },
+  };
 
   return async (app) => {
-    app.post('/auth/register', async (request, reply) => {
+    app.post('/auth/register', strictRateLimit, async (request, reply) => {
       const input = RegisterRequest.parse(request.body);
       const result = await service.register(input, request.headers['user-agent']);
       return reply.code(201).send(result);
     });
 
-    app.post('/auth/login', async (request) => {
+    app.post('/auth/login', strictRateLimit, async (request) => {
       const input = LoginRequest.parse(request.body);
       return service.login(input, request.headers['user-agent']);
     });
 
-    app.post('/auth/refresh', async (request) => {
+    app.post('/auth/refresh', strictRateLimit, async (request) => {
       const input = RefreshRequest.parse(request.body);
       return service.refresh(input.refreshToken, request.headers['user-agent']);
     });

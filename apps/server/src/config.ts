@@ -8,6 +8,11 @@ const EnvSchema = z.object({
   JWT_SECRET: z.string().min(16),
   ACCESS_TOKEN_TTL: z.coerce.number().int().positive().default(900),
   REFRESH_TOKEN_TTL: z.coerce.number().int().positive().default(604_800),
+  CORS_ORIGIN: z.string().default('*'),
+  RATE_LIMIT_MAX: z.coerce.number().int().positive().default(120),
+  RATE_LIMIT_WINDOW: z.string().default('1 minute'),
+  AUTH_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(10),
+  BODY_LIMIT: z.coerce.number().int().positive().default(16_384),
 });
 
 export interface Config {
@@ -18,6 +23,11 @@ export interface Config {
   jwtSecret: string;
   accessTokenTtl: number;
   refreshTokenTtl: number;
+  corsOrigin: string;
+  rateLimitMax: number;
+  rateLimitWindow: string;
+  authRateLimitMax: number;
+  bodyLimit: number;
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
@@ -34,5 +44,10 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     jwtSecret: value.JWT_SECRET,
     accessTokenTtl: value.ACCESS_TOKEN_TTL,
     refreshTokenTtl: value.REFRESH_TOKEN_TTL,
+    corsOrigin: value.CORS_ORIGIN,
+    rateLimitMax: value.RATE_LIMIT_MAX,
+    rateLimitWindow: value.RATE_LIMIT_WINDOW,
+    authRateLimitMax: value.AUTH_RATE_LIMIT_MAX,
+    bodyLimit: value.BODY_LIMIT,
   };
 }

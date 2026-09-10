@@ -5,6 +5,7 @@ import type { ActionResult, Command, PlacementInput, Role } from '@flota/domain'
 
 import type { AppDeps } from '../deps.js';
 import { AppError } from '../errors.js';
+import type { Metrics } from '../infra/metrics.js';
 import { generateCode } from './codes.js';
 import { createKeyedMutex } from './mutex.js';
 import { createGameRecord, persistFinishedGame, recordEvent } from './persist.js';
@@ -70,7 +71,7 @@ export function roleOf(stored: StoredGame, userId: string): Role {
   throw new AppError(403, 'INVALID_ACTION', 'you are not a player in this game');
 }
 
-export function createGameService(deps: AppDeps): GameService {
+export function createGameService(deps: AppDeps, metrics?: Metrics): GameService {
   const store = createGameStore(deps.redis);
   const withLock = createKeyedMutex();
 
@@ -101,6 +102,7 @@ export function createGameService(deps: AppDeps): GameService {
       await store.create(stored);
       await createGameRecord(deps.db, gameId, 'private');
       await store.setActive(userId, gameId);
+      metrics?.gamesStarted.inc({ mode: 'private' });
       return { stored, role: 'host' };
     },
 
@@ -151,6 +153,7 @@ export function createGameService(deps: AppDeps): GameService {
       await createGameRecord(deps.db, gameId, 'matchmaking');
       await store.setActive(hostUserId, gameId);
       await store.setActive(guestUserId, gameId);
+      metrics?.gamesStarted.inc({ mode: 'matchmaking' });
       return stored;
     },
 

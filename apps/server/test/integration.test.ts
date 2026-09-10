@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import type { AddressInfo } from 'node:net';
 import { fileURLToPath } from 'node:url';
 
 import { PROTOCOL_VERSION } from '@flota/protocol';
@@ -12,6 +13,7 @@ import { WebSocket } from 'ws';
 import { buildApp } from '../src/app.js';
 import { createTokenService } from '../src/auth/tokens.js';
 import type { Config } from '../src/config.js';
+import type { AppDeps } from '../src/deps.js';
 import { createDb } from '../src/infra/db.js';
 import { createLogger } from '../src/infra/logger.js';
 import { createRedis } from '../src/infra/redis.js';
@@ -21,6 +23,7 @@ const migrationsFolder = fileURLToPath(new URL('../drizzle', import.meta.url));
 interface TestContext {
   baseUrl: string;
   wsUrl: string;
+  deps: AppDeps;
   teardown: () => Promise<void>;
 }
 
@@ -146,6 +149,11 @@ async function startContext(): Promise<TestContext> {
     jwtSecret: 'test-secret-test-secret',
     accessTokenTtl: 900,
     refreshTokenTtl: 604_800,
+    corsOrigin: '*',
+    rateLimitMax: 10_000,
+    rateLimitWindow: '1 minute',
+    authRateLimitMax: 10_000,
+    bodyLimit: 16_384,
   };
 
   const database = createDb(databaseUrl);
@@ -155,13 +163,8 @@ async function startContext(): Promise<TestContext> {
   const logger = createLogger(config);
   const tokens = createTokenService(config);
 
-  const app = await buildApp({
-    config,
-    db: database.db,
-    redis: redisClient,
-    logger,
-    tokens,
-  });
+  const deps: AppDeps = { config, db: database.db, redis: redisClient, logger, tokens };
+  const app = await buildApp(deps);
   await app.listen({ port: 0, host: '127.0.0.1' });
 
   const address = app.server.address();
@@ -172,6 +175,7 @@ async function startContext(): Promise<TestContext> {
   return {
     baseUrl: `http://127.0.0.1:${address.port}`,
     wsUrl: `ws://127.0.0.1:${address.port}`,
+    deps,
     async teardown() {
       await app.close();
       await database.close();
@@ -294,6 +298,29 @@ describe('REST auth', () => {
     await expect(response.json()).resolves.toMatchObject({
       error: { code: 'INVALID_ACTION' },
     });
+  });
+
+  it('rate limits auth endpoints', async () => {
+    const limited = await buildApp({
+      ...context.deps,
+      config: { ...context.deps.config, authRateLimitMax: 2 },
+    });
+    await limited.listen({ port: 0, host: '127.0.0.1' });
+    const address = limited.server.address() as AddressInfo;
+    const url = `http://127.0.0.1:${address.port}`;
+    const body = JSON.stringify({ email: 'not-an-email', password: 'x' });
+    const headers = { 'content-type': 'application/json' };
+
+    const first = await fetch(`${url}/api/auth/login`, { method: 'POST', headers, body });
+    const second = await fetch(`${url}/api/auth/login`, { method: 'POST', headers, body });
+    const third = await fetch(`${url}/api/auth/login`, { method: 'POST', headers, body });
+
+    expect(first.status).toBe(400);
+    expect(second.status).toBe(400);
+    expect(third.status).toBe(429);
+    await expect(third.json()).resolves.toMatchObject({ error: { code: 'RATE_LIMITED' } });
+
+    await limited.close();
   });
 
   it('rejects duplicate emails and bad credentials', async () => {

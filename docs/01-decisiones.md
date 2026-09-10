@@ -25,6 +25,10 @@ Este documento recoge las decisiones de arquitectura y proceso tomadas para Flot
 | ADR-019 | `ioredis` como cliente Redis | Aceptada |
 | ADR-020 | Mutex en proceso por partida (limitación conocida) | Aceptada |
 | ADR-021 | Testcontainers para pruebas de integración | Aceptada |
+| ADR-022 | Rate limiting y cabeceras de seguridad (helmet) | Aceptada |
+| ADR-023 | Observabilidad con Prometheus (`/metrics`) | Aceptada |
+| ADR-024 | Despliegue con Docker Compose y Caddy (TLS) | Aceptada |
+| ADR-025 | CD a GHCR y despliegue por SSH | Aceptada |
 
 ---
 
@@ -277,6 +281,54 @@ Este documento recoge las decisiones de arquitectura y proceso tomadas para Flot
 **Consecuencias.**
 - Positivas: pruebas autocontenidas y fieles a producción; requiere Docker (disponible en CI).
 - Negativas: arranque más lento (decenas de segundos) y dependencia de Docker.
+
+---
+
+## ADR-022 — Rate limiting y cabeceras de seguridad
+
+**Contexto.** Los endpoints de autenticación son el principal vector de abuso; conviene frenar la fuerza bruta y añadir cabeceras de seguridad.
+
+**Decisión.** Usar **`@fastify/rate-limit`** con un límite global y otro más estricto en registro/login/refresh, y **`@fastify/helmet`** para cabeceras de seguridad. El tamaño del cuerpo se limita con `bodyLimit`.
+
+**Consecuencias.**
+- Positivas: mitiga fuerza bruta y abuso; cabeceras estándar; límites configurables por entorno.
+- Negativas: en despliegues con varias instancias, el almacén del rate limit debe ser compartido (Redis) para ser coherente.
+
+---
+
+## ADR-023 — Observabilidad con Prometheus
+
+**Contexto.** Se necesita medir el uso y detectar problemas en producción.
+
+**Decisión.** Exponer métricas en **`/metrics`** con **`prom-client`** (métricas por defecto del proceso + contadores de peticiones HTTP, conexiones WebSocket y partidas iniciadas). Los logs estructurados de pino redactan datos sensibles.
+
+**Consecuencias.**
+- Positivas: métricas estándar listas para Prometheus/Grafana; logs sin secretos.
+- Negativas: `/metrics` debe protegerse en producción (restringido por el proxy).
+
+---
+
+## ADR-024 — Despliegue con Docker Compose y Caddy
+
+**Contexto.** Se quiere un despliegue reproducible en VPS con TLS y soporte de WebSocket.
+
+**Decisión.** Imágenes Docker multi-etapa para servidor y web; **Docker Compose** de producción con PostgreSQL, Redis, servidor, web (nginx) y **Caddy** como reverse proxy con TLS automático. Las migraciones se ejecutan con un contenedor de un solo uso antes de levantar la nueva versión.
+
+**Consecuencias.**
+- Positivas: TLS automático, enrutado de `/api` y `/ws`, actualización atómica con migración previa.
+- Negativas: responsabilidad de operar el VPS (backups, seguridad, actualizaciones).
+
+---
+
+## ADR-025 — CD a GHCR y despliegue por SSH
+
+**Contexto.** Hay que automatizar la publicación y el despliegue tras integrar en `main`.
+
+**Decisión.** GitHub Actions construye y publica las imágenes en **GHCR** y, después, despliega por **SSH** en el VPS: `pull`, migración y `up -d`.
+
+**Consecuencias.**
+- Positivas: despliegue reproducible y trazable (imágenes etiquetadas por commit).
+- Negativas: requiere secretos de VPS en GitHub y acceso del VPS a GHCR.
 
 ---
 
