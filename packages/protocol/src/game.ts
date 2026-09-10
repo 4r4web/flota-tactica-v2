@@ -12,6 +12,13 @@ export const Role = z.enum(['host', 'guest']);
 
 export const Phase = z.enum(['placement', 'waiting', 'turn', 'opponent', 'finished']);
 
+/** Ship placement sent to the authoritative server. Positions stay private. */
+export const Placement = z.object({
+  id: ShipId,
+  at: Cell,
+  vertical: z.boolean(),
+});
+
 export const Command = z.discriminatedUnion('kind', [
   z.object({
     kind: z.literal('move'),
@@ -95,6 +102,7 @@ export type Cell = z.infer<typeof Cell>;
 export type Axis = z.infer<typeof Axis>;
 export type Role = z.infer<typeof Role>;
 export type Phase = z.infer<typeof Phase>;
+export type Placement = z.infer<typeof Placement>;
 export type Command = z.infer<typeof Command>;
 export type ActionResult = z.infer<typeof ActionResult>;
 export type OwnShip = z.infer<typeof OwnShip>;

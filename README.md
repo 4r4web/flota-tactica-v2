@@ -59,13 +59,26 @@ pnpm format         # formateo de código
 |---|---|
 | 0 — Fundaciones | ✅ Completada |
 | 1 — Dominio y protocolo | ✅ Completada |
-| 2 — Servidor autoritativo | ⏳ Próxima |
-| 3 — Cliente PWA | Pendiente |
+| 2 — Servidor autoritativo | ✅ Completada |
+| 3 — Cliente PWA | ⏳ Próxima |
 | 4 — Matchmaking y ciclo | Pendiente |
 | 5 — Endurecimiento y despliegue | Pendiente |
 | 6 — Lanzamiento | Pendiente |
 
-`@flota/domain` implementa el motor de reglas autoritativo (tablero, catálogo, colocación, movimiento, combate, habilidades, victoria y revancha) con vistas filtradas por jugador. `@flota/protocol` define los contratos REST y WebSocket con Zod. Ver [roadmap](docs/06-roadmap.md).
+El servidor autoritativo ya ofrece registro/login (email + JWT), salas privadas, matchmaking y el bucle de partida completo por WebSocket, con persistencia en PostgreSQL y estado en Redis. `@flota/domain` valida todas las acciones y filtra las vistas por jugador.
+
+## Demo de partida (sin frontend)
+
+Con PostgreSQL y Redis en marcha:
+
+```bash
+pnpm db:up
+pnpm --filter @flota/server exec drizzle-kit migrate
+pnpm --filter @flota/server dev          # terminal 1
+pnpm --filter @flota/server demo:match   # terminal 2
+```
+
+La demo registra dos jugadores, crea una sala privada, prepara ambas flotas y juega una partida completa por WebSocket imprimiendo cada hundimiento.
 
 ## Cómo contribuir
 

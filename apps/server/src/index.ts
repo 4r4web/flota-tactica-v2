@@ -1,31 +1,37 @@
-import { createServer } from 'node:http';
-import type { Server } from 'node:http';
-import { fileURLToPath } from 'node:url';
+import { buildApp } from './app.js';
+import { createTokenService } from './auth/tokens.js';
+import { loadConfig } from './config.js';
+import { createDb } from './infra/db.js';
+import { createLogger } from './infra/logger.js';
+import { createRedis } from './infra/redis.js';
 
-import { healthHandler } from './http/health.js';
+async function main(): Promise<void> {
+  try {
+    process.loadEnvFile();
+  } catch {
+    // No .env file present; rely on the process environment.
+  }
 
-const DEFAULT_PORT = 3000;
+  const config = loadConfig();
+  const logger = createLogger(config);
+  const database = createDb(config.databaseUrl);
+  const redis = createRedis(config.redisUrl);
+  const tokens = createTokenService(config);
 
-export function createApp(): Server {
-  return createServer((req, res) => {
-    if (req.method === 'GET' && req.url === '/health') {
-      healthHandler(req, res);
-      return;
-    }
+  const app = await buildApp({ config, db: database.db, redis, logger, tokens });
 
-    res.writeHead(404, { 'content-type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify({ error: { code: 'NOT_FOUND' } }));
-  });
+  await app.listen({ port: config.port, host: '0.0.0.0' });
+
+  const shutdown = async (signal: string): Promise<void> => {
+    logger.info({ signal }, 'shutting down');
+    await app.close();
+    await database.close();
+    redis.disconnect();
+    process.exit(0);
+  };
+
+  process.on('SIGINT', () => void shutdown('SIGINT'));
+  process.on('SIGTERM', () => void shutdown('SIGTERM'));
 }
 
-function isMain(): boolean {
-  const entry = process.argv[1];
-  return entry !== undefined && fileURLToPath(import.meta.url) === entry;
-}
-
-if (isMain()) {
-  const port = Number(process.env.PORT ?? DEFAULT_PORT);
-  createApp().listen(port, () => {
-    process.stdout.write(`[server] listening on http://localhost:${port}\n`);
-  });
-}
+void main();

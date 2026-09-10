@@ -19,6 +19,12 @@ Este documento recoge las decisiones de arquitectura y proceso tomadas para Flot
 | ADR-013 | Idioma: código en inglés, UI y documentación en español | Aceptada |
 | ADR-014 | Información asimétrica y colisión solo contra flota propia | Aceptada |
 | ADR-015 | Validación de protocolo con Zod | Aceptada |
+| ADR-016 | Fastify como framework HTTP | Aceptada |
+| ADR-017 | `ws` como biblioteca WebSocket | Aceptada |
+| ADR-018 | `jose` (JWT) y `@node-rs/argon2` (hash) | Aceptada |
+| ADR-019 | `ioredis` como cliente Redis | Aceptada |
+| ADR-020 | Mutex en proceso por partida (limitación conocida) | Aceptada |
+| ADR-021 | Testcontainers para pruebas de integración | Aceptada |
 
 ---
 
@@ -199,6 +205,78 @@ Este documento recoge las decisiones de arquitectura y proceso tomadas para Flot
 **Consecuencias.**
 - Positivas: una sola fuente de verdad para los contratos, tipado inferido, validación en runtime.
 - Negativas: dependencia adicional y coste de mantenimiento de los esquemas.
+
+---
+
+## ADR-016 — Fastify como framework HTTP
+
+**Contexto.** El servidor necesita HTTP (REST) y WebSocket con buen rendimiento y tipado.
+
+**Decisión.** Usar **Fastify** con `@fastify/cors` y `@fastify/websocket`.
+
+**Consecuencias.**
+- Positivas: alto rendimiento, excelente soporte de TypeScript, ecosistema de plugins y `app.inject()` para pruebas.
+- Negativas: menor familiaridad que Express para algunos equipos.
+
+---
+
+## ADR-017 — `ws` como biblioteca WebSocket
+
+**Contexto.** El canal de partida es WebSocket puro; no se necesitan salas ni reconexión automática de alto nivel.
+
+**Decisión.** Usar **`ws`** a través de `@fastify/websocket`, sin `socket.io`.
+
+**Consecuencias.**
+- Positivas: ligero, estándar, control total del protocolo; el contrato ya está definido con Zod.
+- Negativas: hay que implementar heartbeat, reconexión y enrutado a mano (ya previsto).
+
+---
+
+## ADR-018 — `jose` para JWT y `@node-rs/argon2` para contraseñas
+
+**Contexto.** Se necesitan tokens de acceso firmados y hash de contraseñas seguro.
+
+**Decisión.** **`jose`** para firmar/verificar JWT (HS256) y **`@node-rs/argon2`** para el hash de contraseñas. Refresh tokens aleatorios almacenados con hash SHA-256.
+
+**Consecuencias.**
+- Positivas: `jose` es moderno y sin dependencias nativas; `@node-rs/argon2` trae binarios precompilados (sin `node-gyp`).
+- Negativas: dependencia de binarios por plataforma en `@node-rs/argon2`.
+
+---
+
+## ADR-019 — `ioredis` como cliente Redis
+
+**Contexto.** El estado de partida, la cola de matchmaking y las sesiones viven en Redis.
+
+**Decisión.** Usar **`ioredis`**.
+
+**Consecuencias.**
+- Positivas: API madura, soporte de scripts Lua (`EVAL`) para operaciones atómicas y reconexión.
+- Negativas: una dependencia adicional frente al cliente oficial.
+
+---
+
+## ADR-020 — Mutex en proceso por partida (limitación conocida)
+
+**Contexto.** Las secuencias leer-modificar-guardar sobre Redis (por ejemplo, ambos jugadores bloqueando su flota a la vez) pueden perder actualizaciones.
+
+**Decisión.** Serializar las mutaciones por partida con un **mutex en proceso** indexado por `gameId`. El matchmaking usa un script Lua atómico.
+
+**Consecuencias.**
+- Positivas: elimina las carreras en un despliegue de una sola instancia (el del MVP) sin infraestructura extra.
+- Negativas: **no es válido para múltiples instancias**; al escalar horizontalmente habrá que sustituirlo por un bloqueo distribuido o por operaciones atómicas en Redis.
+
+---
+
+## ADR-021 — Testcontainers para pruebas de integración
+
+**Contexto.** Las pruebas deben ejecutarse contra PostgreSQL y Redis reales, sin depender de servicios locales.
+
+**Decisión.** Usar **Testcontainers** para levantar contenedores efímeros en las pruebas de integración.
+
+**Consecuencias.**
+- Positivas: pruebas autocontenidas y fieles a producción; requiere Docker (disponible en CI).
+- Negativas: arranque más lento (decenas de segundos) y dependencia de Docker.
 
 ---
 

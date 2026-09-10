@@ -138,7 +138,11 @@ describe('WebSocket messages', () => {
         ts: 0,
         type: 'game.ready',
         gameId: id,
-        ships: ['scout', 'sub', 'support'],
+        ships: [
+          { id: 'scout', at: 0, vertical: false },
+          { id: 'sub', at: 20, vertical: false },
+          { id: 'support', at: 40, vertical: false },
+        ],
       }).success,
     ).toBe(true);
   });
@@ -152,7 +156,10 @@ describe('WebSocket messages', () => {
         ts: 0,
         type: 'game.ready',
         gameId: id,
-        ships: ['scout', 'sub'],
+        ships: [
+          { id: 'scout', at: 0, vertical: false },
+          { id: 'sub', at: 20, vertical: false },
+        ],
       }).success,
     ).toBe(false);
   });

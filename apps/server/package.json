@@ -10,17 +10,32 @@
     "start": "node dist/index.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
-    "lint": "oxlint src test"
+    "lint": "oxlint src test",
+    "demo:match": "tsx scripts/demo-match.ts"
   },
   "dependencies": {
+    "@fastify/cors": "^11.3.0",
+    "@fastify/websocket": "^11.3.0",
     "@flota/domain": "workspace:*",
-    "@flota/protocol": "workspace:*"
+    "@flota/protocol": "workspace:*",
+    "@node-rs/argon2": "^2.2.0",
+    "drizzle-orm": "^0.45.2",
+    "fastify": "^5.12.3",
+    "ioredis": "^6.0.0",
+    "jose": "^6.2.12",
+    "pino": "^10.3.1",
+    "postgres": "^3.4.9",
+    "zod": "^4.5.4"
   },
   "devDependencies": {
     "@flota/config": "workspace:*",
     "@types/node": "^24.0.0",
+    "@types/ws": "^8.18.1",
+    "drizzle-kit": "^0.31.10",
+    "testcontainers": "^12.1.0",
     "tsx": "^4.20.0",
     "typescript": "^5.9.3",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "ws": "^8.21.3"
   }
 }

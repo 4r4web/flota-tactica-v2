@@ -19,6 +19,7 @@ export {
   EnemyShip,
   OwnShip,
   Phase,
+  Placement,
   PlayerView,
   Role,
   ShipId,

@@ -106,7 +106,7 @@ Los mensajes de partida añaden `gameId`, `epoch` y `seq` donde corresponda.
 | `room.leave` | `{ gameId }` | Abandona la sala |
 | `matchmaking.enqueue` | `{}` | Entra en la cola pública |
 | `matchmaking.cancel` | `{}` | Sale de la cola |
-| `game.ready` | `{ gameId, ships: [shipType, shipType, shipType] }` | Flota elegida (solo tipos) |
+| `game.ready` | `{ gameId, ships: [{ id, at, vertical } × 3] }` | Colocación enviada al servidor |
 | `game.action` | `{ gameId, epoch, seq, cmd }` | Acción de partida |
 | `game.rematch` | `{ gameId, epoch }` | Solicita revancha |
 | `game.resume` | `{ gameId }` | Reanuda una partida en curso |
@@ -124,7 +124,7 @@ export const Command = z.discriminatedUnion('kind', [
 ]);
 ```
 
-> **Cambio respecto al prototipo:** con servidor autoritativo, `move` incluye `dx/dy/distance` y `ability` incluye `ally`. El cliente ya no calcula el estado localmente como fuente de verdad; el servidor recibe la intención completa y la valida. El servidor nunca reenvía estos datos privados al rival.
+> **Cambio respecto al prototipo:** con servidor autoritativo, el cliente envía al servidor la **colocación completa** (`game.ready`) y las intenciones completas (`move` con `dx/dy/distance`, `ability` con `ally`). El servidor las valida y **nunca reenvía** esos datos privados al rival: la vista del oponente solo incluye tipos y estado de hundimiento.
 
 ---
 

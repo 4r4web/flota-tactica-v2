@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import { ErrorCode, PROTOCOL_VERSION } from './common.js';
-import { ActionResult, Command, PlayerView, Role, ShipId } from './game.js';
+import { ActionResult, Command, Placement, PlayerView, Role } from './game.js';
 
 const base = {
   v: z.literal(PROTOCOL_VERSION),
@@ -22,7 +22,7 @@ export const ClientMessage = z.discriminatedUnion('type', [
     ...base,
     type: z.literal('game.ready'),
     gameId: z.string().uuid(),
-    ships: z.array(ShipId).length(3),
+    ships: z.array(Placement).length(3),
   }),
   z.object({
     ...base,
