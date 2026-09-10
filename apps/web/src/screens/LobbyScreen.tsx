@@ -22,6 +22,15 @@ export function LobbyScreen() {
         <h2 className="text-base font-bold text-mint">Sala creada</h2>
         <p className="mt-2 text-sm text-muted">Comparte este código con tu rival:</p>
         <p className="mt-3 text-4xl font-black tracking-[0.3em] text-ink">{roomCode}</p>
+        <button
+          type="button"
+          onClick={() => {
+            void navigator.clipboard?.writeText(roomCode);
+          }}
+          className="mt-3 rounded-md border border-sea-700 px-3 py-1 text-xs text-muted hover:border-mint hover:text-mint"
+        >
+          Copiar código
+        </button>
         <p className="mt-4 animate-pulse text-xs text-amber">Esperando al rival…</p>
         <button
           type="button"

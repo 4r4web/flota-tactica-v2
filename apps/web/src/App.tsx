@@ -16,12 +16,16 @@ export function App() {
   const accessToken = useAuth((state) => state.accessToken);
   const connect = useGame((state) => state.connect);
   const view = useGame((state) => state.view);
+  const roomCode = useGame((state) => state.roomCode);
+  const players = useGame((state) => state.players);
 
   useEffect(() => {
     if (accessToken !== null) {
       connect(accessToken);
     }
   }, [accessToken, connect]);
+
+  const waitingForOpponent = roomCode !== null && players < 2;
 
   return (
     <div className="flex min-h-full flex-col">
@@ -30,7 +34,7 @@ export function App() {
       <main className="mx-auto w-full max-w-5xl flex-1 p-4">
         {user === null ? (
           <AuthScreen />
-        ) : view === null ? (
+        ) : view === null || waitingForOpponent ? (
           <LobbyScreen />
         ) : (
           <GameScreen view={view} />

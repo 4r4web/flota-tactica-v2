@@ -9,6 +9,7 @@ interface GameStore {
   status: ConnectionStatus;
   view: PlayerView | null;
   roomCode: string | null;
+  players: number;
   lastResult: ActionResult | null;
   error: string | null;
   connect: (token: string) => void;
@@ -28,6 +29,7 @@ export const useGame = create<GameStore>((set, get) => ({
   status: 'idle',
   view: null,
   roomCode: null,
+  players: 0,
   lastResult: null,
   error: null,
 
@@ -37,7 +39,14 @@ export const useGame = create<GameStore>((set, get) => ({
 
   disconnect() {
     gameSocket.close();
-    set({ status: 'idle', view: null, roomCode: null, lastResult: null, error: null });
+    set({
+      status: 'idle',
+      view: null,
+      roomCode: null,
+      players: 0,
+      lastResult: null,
+      error: null,
+    });
   },
 
   createRoom() {
@@ -88,7 +97,7 @@ export const useGame = create<GameStore>((set, get) => ({
   },
 
   reset() {
-    set({ view: null, roomCode: null, lastResult: null, error: null });
+    set({ view: null, roomCode: null, players: 0, lastResult: null, error: null });
   },
 }));
 
@@ -106,6 +115,9 @@ gameSocket.onMessage((message) => {
   switch (message.type) {
     case 'room.created':
       useGame.setState({ roomCode: message.code });
+      break;
+    case 'room.state':
+      useGame.setState({ players: message.players.length });
       break;
     case 'game.state':
     case 'game.resumed':
