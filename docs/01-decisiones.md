@@ -31,6 +31,7 @@ Este documento recoge las decisiones de arquitectura y proceso tomadas para Flot
 | ADR-025 | CD a GHCR y despliegue por SSH | Aceptada |
 | ADR-026 | Beta con coste 0 en Oracle Cloud Always Free | Aceptada |
 | ADR-027 | Beta sin cuentas: local + túnel gratuito | Aceptada |
+| ADR-028 | Beta autoalojada en Raspberry Pi | Aceptada |
 
 ---
 
@@ -355,6 +356,18 @@ Este documento recoge las decisiones de arquitectura y proceso tomadas para Flot
 **Consecuencias.**
 - Positivas: cero cuentas y cero coste; mismo stack que producción; WebSocket estable; HTTPS para instalar la PWA.
 - Negativas: solo disponible mientras el equipo esté encendido; la URL del quick tunnel cambia en cada reinicio (se puede fijar con un túnel con nombre o DuckDNS).
+
+---
+
+## ADR-028 — Beta autoalojada en Raspberry Pi
+
+**Contexto.** Para una beta con pocos testers, se busca una plataforma propia, de bajo consumo y sin cuotas, dado que no hay acceso a VM en la nube ni a servicios gestionados.
+
+**Decisión.** Soportar el despliegue en una **Raspberry Pi 4/5** (ARM64) con el mismo `docker compose`, accesible en la red local y expuesta a Internet mediante túnel (cloudflared o localhost.run). Se añade un script de instalación de Docker genérico y un servicio systemd de ejemplo para el túnel.
+
+**Consecuencias.**
+- Positivas: coste 0 y control total; sin cuentas; WebSocket estable; las imágenes ya son ARM64.
+- Negativas: depende de la red eléctrica y doméstica; el desgaste de la microSD aconseja SSD; capacidad limitada a unos pocos testers simultáneos.
 
 ---
 

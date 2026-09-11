@@ -6,6 +6,10 @@
 #   docker compose --env-file .env.prod -f docker/compose.tunnel.yml run --rm server node dist/db/migrate.js
 #   bash scripts/tunnel.sh
 #
+# Acceso desde la red local (Raspberry Pi, PC de casa): usa LOCAL_BIND=0.0.0.0
+#   LOCAL_BIND=0.0.0.0 docker compose ... up -d --build
+#   -> http://<ip-del-host>:8080
+#
 name: flota-tunnel
 
 services:
@@ -64,7 +68,7 @@ services:
       dockerfile: docker/web.Dockerfile
     restart: unless-stopped
     ports:
-      - '127.0.0.1:${LOCAL_PORT:-8080}:80'
+      - '${LOCAL_BIND:-127.0.0.1}:${LOCAL_PORT:-8080}:80'
     depends_on:
       - server
 
