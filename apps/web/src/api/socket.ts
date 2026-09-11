@@ -1,6 +1,8 @@
 import { PROTOCOL_VERSION } from '@flota/protocol';
 import type { ClientMessage, ServerMessage } from '@flota/protocol';
 
+import { uuid } from '../lib/uuid';
+
 export type ConnectionStatus =
   | 'idle'
   | 'connecting'
@@ -42,7 +44,7 @@ class GameSocket {
     }
     const message = {
       v: PROTOCOL_VERSION,
-      id: crypto.randomUUID(),
+      id: uuid(),
       ts: Date.now(),
       type,
       ...payload,
