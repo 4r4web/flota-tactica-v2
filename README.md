@@ -17,6 +17,7 @@ Juego táctico naval por turnos para 2 jugadores. Re-implementación con arquite
 | [08 — Beta gratuita](docs/08-beta-gratuita.md) | Despliegue con coste 0 (Oracle Cloud Always Free) |
 | [09 — Beta sin cuentas](docs/09-beta-sin-cuentas.md) | Túnel local y alternativas sin registros |
 | [10 — Beta en Raspberry Pi](docs/10-beta-raspberry-pi.md) | Beta autoalojada en una Raspberry Pi |
+| [11 — VPS barato](docs/11-vps-barato.md) | VPS económico (Dinahosting y similares) |
 
 ## Estructura
 
@@ -58,6 +59,7 @@ Para la **beta con coste 0**:
 
 - **Sin crear cuentas:** [túnel local](docs/09-beta-sin-cuentas.md) → `cp .env.prod.example .env.prod`, `pnpm beta:up`, `pnpm beta:migrate`, `pnpm beta:tunnel`.
 - **Autoalojada en una Raspberry Pi:** [guía de Raspberry Pi](docs/10-beta-raspberry-pi.md).
+- **VPS barato (24/7):** [guía de VPS](docs/11-vps-barato.md).
 - **En la nube gratuita:** [Oracle Cloud Always Free](docs/08-beta-gratuita.md).
 
 Prueba de carga (requiere [k6](https://k6.io)):
