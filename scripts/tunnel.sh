@@ -13,11 +13,16 @@ set -euo pipefail
 
 PORT="${LOCAL_PORT:-8080}"
 
+CLOUDFLARED="$(command -v cloudflared || true)"
+if [[ -z "${CLOUDFLARED}" && -x "${HOME}/.local/bin/cloudflared" ]]; then
+  CLOUDFLARED="${HOME}/.local/bin/cloudflared"
+fi
+
 echo "==> Exponiendo http://localhost:${PORT}"
 
-if command -v cloudflared >/dev/null 2>&1; then
+if [[ -n "${CLOUDFLARED}" ]]; then
   echo "Usando cloudflared (quick tunnel). Copia la URL https://…trycloudflare.com que aparezca."
-  exec cloudflared tunnel --url "http://localhost:${PORT}"
+  exec "${CLOUDFLARED}" tunnel --url "http://localhost:${PORT}" --no-autoupdate
 fi
 
 if command -v ssh >/dev/null 2>&1; then
