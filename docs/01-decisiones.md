@@ -30,6 +30,7 @@ Este documento recoge las decisiones de arquitectura y proceso tomadas para Flot
 | ADR-024 | Despliegue con Docker Compose y Caddy (TLS) | Aceptada |
 | ADR-025 | CD a GHCR y despliegue por SSH | Aceptada |
 | ADR-026 | Beta con coste 0 en Oracle Cloud Always Free | Aceptada |
+| ADR-027 | Beta sin cuentas: local + túnel gratuito | Aceptada |
 
 ---
 
@@ -342,6 +343,18 @@ Este documento recoge las decisiones de arquitectura y proceso tomadas para Flot
 **Consecuencias.**
 - Positivas: coste 0 real y sin caducidad, WebSocket estable, sin cambios de código, TLS gratuito; migración futura a un VPS de pago sin tocar el código.
 - Negativas: aprovisionar la VM ARM puede ser complicado; sin alta disponibilidad; la operación (backups, seguridad) sigue siendo responsabilidad propia.
+
+---
+
+## ADR-027 — Beta sin cuentas: local + túnel gratuito
+
+**Contexto.** No siempre es posible crear una VM en Oracle ni cuentas en servicios gestionados (Neon, etc.). Se necesita una vía de beta con **coste 0 y sin registros**.
+
+**Decisión.** Ejecutar el stack completo en el equipo del desarrollador con **Docker Compose** (PostgreSQL, Redis, servidor y web) y publicarlo con un **túnel gratuito** (Cloudflare quick tunnel o localhost.run). El contenedor **web (nginx) actúa como entrada única** y hace de proxy de `/api`, `/ws` y `/health` hacia el servidor, de modo que el túnel solo necesita un puerto.
+
+**Consecuencias.**
+- Positivas: cero cuentas y cero coste; mismo stack que producción; WebSocket estable; HTTPS para instalar la PWA.
+- Negativas: solo disponible mientras el equipo esté encendido; la URL del quick tunnel cambia en cada reinicio (se puede fijar con un túnel con nombre o DuckDNS).
 
 ---
 

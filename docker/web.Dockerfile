@@ -6,7 +6,9 @@ RUN corepack enable
 WORKDIR /app
 COPY . .
 RUN pnpm install --frozen-lockfile
-RUN pnpm --filter @flota/web build
+RUN pnpm --filter @flota/domain build \
+ && pnpm --filter @flota/protocol build \
+ && pnpm --filter @flota/web build
 
 FROM nginx:alpine AS runtime
 COPY --from=build /app/apps/web/dist /usr/share/nginx/html

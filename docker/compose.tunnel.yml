@@ -1,0 +1,73 @@
+# Beta local: ejecuta el stack completo en tu equipo y expónalo con un túnel
+# gratuito. No requiere cuentas ni registros.
+#
+#   cp .env.prod.example .env.prod   # edita JWT_SECRET (y POSTGRES_PASSWORD)
+#   docker compose --env-file .env.prod -f docker/compose.tunnel.yml up -d --build
+#   docker compose --env-file .env.prod -f docker/compose.tunnel.yml run --rm server node dist/db/migrate.js
+#   bash scripts/tunnel.sh
+#
+name: flota-tunnel
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-flota}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-flota}
+      POSTGRES_DB: ${POSTGRES_DB:-flota}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-flota}']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ['redis-server', '--appendonly', 'yes']
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  server:
+    image: ${SERVER_IMAGE:-flota-server:local}
+    build:
+      context: ..
+      dockerfile: docker/server.Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: '3000'
+      DATABASE_URL: postgres://${POSTGRES_USER:-flota}:${POSTGRES_PASSWORD:-flota}@postgres:5432/${POSTGRES_DB:-flota}
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET}
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+      ACCESS_TOKEN_TTL: ${ACCESS_TOKEN_TTL:-900}
+      REFRESH_TOKEN_TTL: ${REFRESH_TOKEN_TTL:-604800}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  web:
+    image: ${WEB_IMAGE:-flota-web:local}
+    build:
+      context: ..
+      dockerfile: docker/web.Dockerfile
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:${LOCAL_PORT:-8080}:80'
+    depends_on:
+      - server
+
+volumes:
+  pgdata:
+  redisdata:

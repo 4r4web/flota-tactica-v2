@@ -15,6 +15,7 @@ Juego táctico naval por turnos para 2 jugadores. Re-implementación con arquite
 | [06 — Roadmap](docs/06-roadmap.md) | Fases, hitos y criterios de salida |
 | [07 — Despliegue](docs/07-despliegue.md) | Docker, Caddy, CD, backups y operación |
 | [08 — Beta gratuita](docs/08-beta-gratuita.md) | Despliegue con coste 0 (Oracle Cloud Always Free) |
+| [09 — Beta sin cuentas](docs/09-beta-sin-cuentas.md) | Túnel local y alternativas sin registros |
 
 ## Estructura
 
@@ -52,7 +53,10 @@ Despliegue en producción (ver [guía de despliegue](docs/07-despliegue.md)):
 docker compose --env-file .env.prod -f docker/compose.prod.yml up -d
 ```
 
-Para la **beta con coste 0** en Oracle Cloud Always Free, sigue la [guía de beta gratuita](docs/08-beta-gratuita.md).
+Para la **beta con coste 0**:
+
+- **Sin crear cuentas:** [túnel local](docs/09-beta-sin-cuentas.md) → `cp .env.prod.example .env.prod`, `pnpm beta:up`, `pnpm beta:migrate`, `pnpm beta:tunnel`.
+- **En la nube gratuita:** [Oracle Cloud Always Free](docs/08-beta-gratuita.md).
 
 Prueba de carga (requiere [k6](https://k6.io)):
 
