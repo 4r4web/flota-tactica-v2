@@ -1,28 +1,50 @@
 #!/usr/bin/env bash
 #
-# Expone la beta local con un túnel gratuito (sin cuentas).
+# Genera una URL pública (HTTPS) para la beta local y la muestra destacada.
+# Sin cuentas. Mantén esta terminal abierta mientras quieras el acceso remoto.
 #
 # Uso:
+#   pnpm beta:tunnel
 #   LOCAL_PORT=8080 bash scripts/tunnel.sh
-#
-# Orden de preferencia:
-#   1. cloudflared (quick tunnel)  -> https://<aleatorio>.trycloudflare.com
-#   2. SSH a localhost.run         -> https://<aleatorio>.lhr.life
 #
 set -euo pipefail
 
 PORT="${LOCAL_PORT:-8080}"
+LOG_FILE="${TMPDIR:-/tmp}/flota-tunnel.log"
 
 CLOUDFLARED="$(command -v cloudflared || true)"
 if [[ -z "${CLOUDFLARED}" && -x "${HOME}/.local/bin/cloudflared" ]]; then
   CLOUDFLARED="${HOME}/.local/bin/cloudflared"
 fi
 
-echo "==> Exponiendo http://localhost:${PORT}"
-
 if [[ -n "${CLOUDFLARED}" ]]; then
-  echo "Usando cloudflared (quick tunnel). Copia la URL https://…trycloudflare.com que aparezca."
-  exec "${CLOUDFLARED}" tunnel --url "http://localhost:${PORT}" --no-autoupdate
+  : > "${LOG_FILE}"
+  "${CLOUDFLARED}" tunnel --url "http://localhost:${PORT}" --no-autoupdate \
+    > "${LOG_FILE}" 2>&1 &
+  CF_PID=$!
+  trap 'kill "${CF_PID}" 2>/dev/null || true' INT TERM
+
+  URL=""
+  for _ in $(seq 1 40); do
+    URL="$(grep -oE 'https://[a-z0-9-]+\.trycloudflare\.com' "${LOG_FILE}" | head -1 || true)"
+    [[ -n "${URL}" ]] && break
+    sleep 1
+  done
+
+  if [[ -z "${URL}" ]]; then
+    echo "No se pudo obtener la URL. Revisa ${LOG_FILE}." >&2
+    exit 1
+  fi
+
+  echo
+  echo "==================================================================="
+  echo "  URL pública: ${URL}"
+  echo "==================================================================="
+  echo "  Comparte esta URL (o su QR). Mantén esta terminal abierta."
+  echo "  Ctrl+C para cerrar el túnel."
+  echo
+  wait "${CF_PID}"
+  exit 0
 fi
 
 if command -v ssh >/dev/null 2>&1; then
