@@ -19,6 +19,7 @@ Juego táctico naval por turnos para 2 jugadores. Re-implementación con arquite
 | [10 — Beta en Raspberry Pi](docs/10-beta-raspberry-pi.md) | Beta autoalojada en una Raspberry Pi |
 | [11 — VPS barato](docs/11-vps-barato.md) | VPS económico (Dinahosting y similares) |
 | [12 — AWS](docs/12-aws.md) | Equivalente en AWS (Lightsail / EC2) |
+| [13 — Comparativa de hosting](docs/13-comparativa-hosting.md) | VPS vs Cloudflare vs Firebase/Supabase |
 
 ## Estructura
 
