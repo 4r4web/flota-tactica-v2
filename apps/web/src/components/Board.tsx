@@ -26,6 +26,16 @@ export interface BoardProps {
   disabled?: boolean;
 }
 
+/** Sprite sheet file for each ship class (a horizontal strip of N square tiles). */
+const SHIP_IMAGE: Record<ShipId, string> = {
+  scout: 'explorer',
+  sub: 'submarine',
+  frigate: 'frigate',
+  support: 'shipyard',
+  destroyer: 'destroyer',
+  dread: 'battleship',
+};
+
 const COLUMNS = Array.from({ length: 10 }, (_, index) => index + 1);
 const ROWS = Array.from({ length: 10 }, (_, index) => String.fromCharCode(65 + index));
 
@@ -44,7 +54,7 @@ function buildOccupancy(ships: BoardShip[]): Map<number, Occupancy> {
     cells.forEach((cell, index) => {
       map.set(cell, {
         shipId: ship.id,
-        tile: index + 1,
+        tile: index,
         anchor: index === 0,
         sunk: (ship.hp ?? 1) <= 0,
         cloaked: ship.cloaked ?? false,
@@ -54,7 +64,7 @@ function buildOccupancy(ships: BoardShip[]): Map<number, Occupancy> {
   return map;
 }
 
-/** Renders an image, falling back to a text glyph if it cannot be loaded. */
+/** Renders a single square image, falling back to a text glyph on error. */
 function BoardImage({ src, alt, fallback }: { src: string; alt: string; fallback: string }) {
   const [failed, setFailed] = useState(false);
 
@@ -69,6 +79,35 @@ function BoardImage({ src, alt, fallback }: { src: string; alt: string; fallback
       className="h-full w-full object-contain"
       onError={() => setFailed(true)}
     />
+  );
+}
+
+/** Shows one tile of a ship's horizontal sprite strip inside a cell. */
+function ShipSprite({ id, tile, fallback }: { id: ShipId; tile: number; fallback: string }) {
+  const [failed, setFailed] = useState(false);
+  const [tiles, setTiles] = useState(CATALOG[id].size);
+
+  if (failed) {
+    return <span className="text-[10px] font-semibold">{fallback}</span>;
+  }
+
+  return (
+    <span className="absolute inset-0 overflow-hidden">
+      <img
+        src={`/images/ships/${SHIP_IMAGE[id]}.png`}
+        alt={CATALOG[id].name}
+        draggable={false}
+        className="absolute top-0 h-full max-w-none"
+        style={{ width: `${tiles * 100}%`, left: `-${tile * 100}%` }}
+        onLoad={(event) => {
+          const image = event.currentTarget;
+          if (image.naturalHeight > 0) {
+            setTiles(Math.max(1, Math.round(image.naturalWidth / image.naturalHeight)));
+          }
+        }}
+        onError={() => setFailed(true)}
+      />
+    </span>
   );
 }
 
@@ -116,34 +155,6 @@ export function Board({
               const isAim = aimSet.has(cell);
               const isSelected = occupied !== undefined && occupied.shipId === selectedShipId;
 
-              let shipIcon: React.ReactNode = null;
-              if (occupied !== undefined) {
-                shipIcon = (
-                  <span
-                    className={cn(
-                      'absolute inset-0',
-                      occupied.sunk && 'opacity-50 grayscale',
-                      occupied.cloaked && 'opacity-80',
-                    )}
-                  >
-                    <BoardImage
-                      src={`/images/ships/${occupied.shipId}/${occupied.tile}.png`}
-                      alt={CATALOG[occupied.shipId].name}
-                      fallback={occupied.anchor ? CATALOG[occupied.shipId].mark : '━'}
-                    />
-                  </span>
-                );
-              }
-
-              let marker: React.ReactNode = null;
-              if (isHit) {
-                marker = <BoardImage src="/images/hit.png" alt="Impacto" fallback="✕" />;
-              } else if (isMiss) {
-                marker = <BoardImage src="/images/miss.png" alt="Agua" fallback="·" />;
-              } else if (isContact) {
-                marker = <span className="text-[10px] font-semibold text-amber">◉</span>;
-              }
-
               return (
                 <button
                   key={cell}
@@ -154,18 +165,43 @@ export function Board({
                   className={cn(
                     'relative flex aspect-square items-center justify-center rounded-[3px] transition-colors',
                     'bg-sea-800 text-muted',
-                    occupied !== undefined && !occupied.sunk && 'bg-sea-600 text-mint',
-                    occupied?.sunk && 'bg-sea-700 text-coral/70',
+                    occupied !== undefined && !occupied.sunk && 'bg-sea-600',
+                    occupied?.sunk && 'bg-sea-700',
                     isContact && occupied === undefined && 'bg-amber/20 text-amber',
                     isSelected && 'ring-2 ring-mint',
                     isAim && 'outline outline-2 outline-amber',
                     disabled ? 'cursor-default' : 'cursor-pointer hover:brightness-125',
                   )}
                 >
-                  {shipIcon}
-                  {marker !== null && (
+                  {occupied !== undefined && (
+                    <span
+                      className={cn(
+                        'absolute inset-0',
+                        occupied.sunk && 'opacity-50 grayscale',
+                        occupied.cloaked && 'opacity-80',
+                      )}
+                    >
+                      <ShipSprite
+                        id={occupied.shipId}
+                        tile={occupied.tile}
+                        fallback={occupied.anchor ? CATALOG[occupied.shipId].mark : '━'}
+                      />
+                    </span>
+                  )}
+
+                  {isHit && (
                     <span className="absolute inset-0 flex items-center justify-center">
-                      {marker}
+                      <BoardImage src="/images/impact.png" alt="Impacto" fallback="✕" />
+                    </span>
+                  )}
+                  {isMiss && (
+                    <span className="absolute inset-0 flex items-center justify-center">
+                      <BoardImage src="/images/miss.png" alt="Agua" fallback="·" />
+                    </span>
+                  )}
+                  {isContact && occupied === undefined && (
+                    <span className="absolute inset-0 flex items-center justify-center text-[10px] font-semibold text-amber">
+                      ◉
                     </span>
                   )}
                 </button>
