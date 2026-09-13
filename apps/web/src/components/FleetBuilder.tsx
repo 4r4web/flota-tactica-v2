@@ -11,6 +11,8 @@ import {
 import type { PlacementInput, ShipId } from '@flota/domain';
 import { useMemo, useState } from 'react';
 
+import { pickBlock, picksCost } from '../lib/fleet';
+import type { PickBlock } from '../lib/fleet';
 import { useGame } from '../store/game';
 import { Board } from './Board';
 import { CatalogCard } from './CatalogCard';
@@ -36,7 +38,18 @@ export function FleetBuilder() {
   const [vertical, setVertical] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const cost = useMemo(() => picks.reduce((total, id) => total + CATALOG[id].cost, 0), [picks]);
+  const cost = picksCost(picks);
+  const remaining = RULES.budget - cost;
+
+  const hintFor = (reason: PickBlock): string => {
+    if (reason === 'full') {
+      return `Ya tienes ${RULES.fleet} barcos`;
+    }
+    if (reason === 'budget') {
+      return `No caben (quedan ${remaining} pt)`;
+    }
+    return '';
+  };
 
   const fleetReady = useMemo(() => {
     if (picks.length !== RULES.fleet || placements.length !== RULES.fleet) {
@@ -63,6 +76,10 @@ export function FleetBuilder() {
     }
     if (picks.length >= RULES.fleet) {
       setError(`Solo puedes elegir ${RULES.fleet} barcos.`);
+      return;
+    }
+    if (pickBlock(picks, id) === 'budget') {
+      setError(`Ese barco supera el presupuesto (quedan ${remaining} puntos).`);
       return;
     }
     setPicks([...picks, id]);
@@ -115,19 +132,30 @@ export function FleetBuilder() {
             <h2 className="text-sm font-bold text-mint">Elige tu flota</h2>
             <span className="text-xs text-muted">
               {picks.length}/{RULES.fleet} barcos · {cost}/{RULES.budget} puntos
+              {picks.length > 0 && picks.length < RULES.fleet && (
+                <span className="text-amber"> · quedan {remaining}</span>
+              )}
             </span>
           </div>
           <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-            {SHIP_IDS.map((id) => (
-              <CatalogCard
-                key={id}
-                id={id}
-                selected={picks.includes(id)}
-                disabled={picks.length >= RULES.fleet && !picks.includes(id)}
-                onClick={() => togglePick(id)}
-              />
-            ))}
+            {SHIP_IDS.map((id) => {
+              const reason = pickBlock(picks, id);
+              return (
+                <CatalogCard
+                  key={id}
+                  id={id}
+                  selected={picks.includes(id)}
+                  disabled={reason !== null}
+                  hint={reason === null ? undefined : hintFor(reason)}
+                  onClick={() => togglePick(id)}
+                />
+              );
+            })}
           </div>
+          <p className="mt-2 text-[11px] text-muted">
+            Se deshabilitan los barcos que no caben en el presupuesto o cuando ya tienes{' '}
+            {RULES.fleet}.
+          </p>
         </div>
 
         {picks.length > 0 && (

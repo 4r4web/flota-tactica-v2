@@ -7,11 +7,13 @@ export function CatalogCard({
   id,
   selected = false,
   disabled = false,
+  hint,
   onClick,
 }: {
   id: ShipId;
   selected?: boolean;
   disabled?: boolean;
+  hint?: string;
   onClick?: () => void;
 }) {
   const ship = CATALOG[id];
@@ -21,10 +23,11 @@ export function CatalogCard({
       type="button"
       disabled={disabled}
       onClick={onClick}
+      title={disabled ? hint : undefined}
       className={cn(
         'flex flex-col gap-1 rounded-lg border p-3 text-left transition-colors',
         selected ? 'border-mint bg-mint/10' : 'border-sea-700 bg-sea-900 hover:border-sea-600',
-        disabled && 'opacity-50',
+        disabled && 'cursor-not-allowed opacity-45',
       )}
     >
       <div className="flex items-center justify-between">
@@ -54,6 +57,9 @@ export function CatalogCard({
           <dd className="text-ink">{ship.weapon === 'cannon' ? 'Cañón' : 'Torpedo'}</dd>
         </div>
       </dl>
+      {disabled && hint !== undefined && (
+        <span className="text-[10px] font-medium text-amber">{hint}</span>
+      )}
     </button>
   );
 }

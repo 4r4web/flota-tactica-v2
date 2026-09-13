@@ -2,11 +2,39 @@ import { describe, expect, it } from 'vitest';
 
 import { cn } from '../src/lib/cn';
 import { errorMessage } from '../src/lib/errors';
+import { pickBlock, picksCost } from '../src/lib/fleet';
 import { uuid } from '../src/lib/uuid';
 
 describe('cn', () => {
   it('joins truthy class names', () => {
     expect(cn('a', false, undefined, 'b', null)).toBe('a b');
+  });
+});
+
+describe('fleet picks', () => {
+  it('sums the point cost of the picks', () => {
+    expect(picksCost([])).toBe(0);
+    expect(picksCost(['scout', 'sub', 'support'])).toBe(9);
+    expect(picksCost(['dread', 'destroyer', 'sub'])).toBe(14);
+  });
+
+  it('allows a ship that fits the budget', () => {
+    expect(pickBlock([], 'dread')).toBeNull();
+    expect(pickBlock(['dread'], 'sub')).toBeNull();
+    expect(pickBlock(['scout', 'sub'], 'support')).toBeNull();
+  });
+
+  it('blocks a ship that would exceed the budget', () => {
+    expect(pickBlock(['dread', 'destroyer'], 'sub')).toBe('budget');
+    expect(pickBlock(['frigate', 'destroyer'], 'dread')).toBe('budget');
+  });
+
+  it('blocks any new ship once the fleet is full', () => {
+    expect(pickBlock(['scout', 'sub', 'support'], 'dread')).toBe('full');
+  });
+
+  it('ignores ships that are already picked', () => {
+    expect(pickBlock(['dread', 'destroyer', 'sub'], 'sub')).toBeNull();
   });
 });
 
