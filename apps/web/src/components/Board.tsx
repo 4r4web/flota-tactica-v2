@@ -149,16 +149,25 @@ export function Board({
       </header>
 
       <div className="grid grid-cols-[auto_repeat(10,minmax(0,1fr))] gap-1">
-        <div />
-        {COLUMNS.map((column) => (
-          <div key={`col-${column}`} className="text-center text-[9px] text-muted">
+        <div style={{ gridRow: 1, gridColumn: 1 }} />
+        {COLUMNS.map((column, columnIndex) => (
+          <div
+            key={`col-${column}`}
+            style={{ gridRow: 1, gridColumn: columnIndex + 2 }}
+            className="text-center text-[9px] text-muted"
+          >
             {column}
           </div>
         ))}
 
         {ROWS.map((row, rowIndex) => (
           <Fragment key={row}>
-            <div className="flex items-center text-[9px] text-muted">{row}</div>
+            <div
+              style={{ gridRow: rowIndex + 2, gridColumn: 1 }}
+              className="flex items-center text-[9px] text-muted"
+            >
+              {row}
+            </div>
             {COLUMNS.map((_, columnIndex) => {
               const cell = rowIndex * 10 + columnIndex;
               const occupied = occupancy.get(cell);
@@ -174,6 +183,7 @@ export function Board({
                   disabled={disabled}
                   onClick={() => onCellClick?.(cell)}
                   title={`${row}${columnIndex + 1}`}
+                  style={{ gridRow: rowIndex + 2, gridColumn: columnIndex + 2 }}
                   className={cn(
                     'relative flex aspect-square items-center justify-center rounded-[3px] transition-colors',
                     'bg-sea-800 text-muted',
