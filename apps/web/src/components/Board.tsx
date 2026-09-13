@@ -43,6 +43,7 @@ interface Occupancy {
   shipId: ShipId;
   tile: number;
   anchor: boolean;
+  vertical: boolean;
   sunk: boolean;
   cloaked: boolean;
 }
@@ -56,6 +57,7 @@ function buildOccupancy(ships: BoardShip[]): Map<number, Occupancy> {
         shipId: ship.id,
         tile: index,
         anchor: index === 0,
+        vertical: ship.vertical,
         sunk: (ship.hp ?? 1) <= 0,
         cloaked: ship.cloaked ?? false,
       });
@@ -83,7 +85,17 @@ function BoardImage({ src, alt, fallback }: { src: string; alt: string; fallback
 }
 
 /** Shows one tile of a ship's horizontal sprite strip inside a cell. */
-function ShipSprite({ id, tile, fallback }: { id: ShipId; tile: number; fallback: string }) {
+function ShipSprite({
+  id,
+  tile,
+  vertical,
+  fallback,
+}: {
+  id: ShipId;
+  tile: number;
+  vertical: boolean;
+  fallback: string;
+}) {
   const [failed, setFailed] = useState(false);
   const [tiles, setTiles] = useState(CATALOG[id].size);
 
@@ -92,7 +104,7 @@ function ShipSprite({ id, tile, fallback }: { id: ShipId; tile: number; fallback
   }
 
   return (
-    <span className="absolute inset-0 overflow-hidden">
+    <span className={cn('absolute inset-0 overflow-hidden', vertical && 'rotate-90')}>
       <img
         src={`/images/ships/${SHIP_IMAGE[id]}.png`}
         alt={CATALOG[id].name}
@@ -127,6 +139,7 @@ export function Board({
   const contactSet = new Set(contacts);
   const shotSet = new Set(shots);
   const hitSet = new Set(hits);
+  const selectedShip = ships.find((ship) => ship.id === selectedShipId) ?? null;
 
   return (
     <section className="rounded-xl border border-sea-700 bg-sea-900 p-3" aria-label={label}>
@@ -153,7 +166,6 @@ export function Board({
               const isMiss = shotSet.has(cell) && !isHit;
               const isContact = contactSet.has(cell);
               const isAim = aimSet.has(cell);
-              const isSelected = occupied !== undefined && occupied.shipId === selectedShipId;
 
               return (
                 <button
@@ -168,7 +180,6 @@ export function Board({
                     occupied !== undefined && !occupied.sunk && 'bg-sea-600',
                     occupied?.sunk && 'bg-sea-700',
                     isContact && occupied === undefined && 'bg-amber/20 text-amber',
-                    isSelected && 'ring-2 ring-mint',
                     isAim && 'outline outline-2 outline-amber',
                     disabled ? 'cursor-default' : 'cursor-pointer hover:brightness-125',
                   )}
@@ -184,6 +195,7 @@ export function Board({
                       <ShipSprite
                         id={occupied.shipId}
                         tile={occupied.tile}
+                        vertical={occupied.vertical}
                         fallback={occupied.anchor ? CATALOG[occupied.shipId].mark : '━'}
                       />
                     </span>
@@ -209,6 +221,20 @@ export function Board({
             })}
           </Fragment>
         ))}
+
+        {selectedShip !== null && (
+          <div
+            className="pointer-events-none z-10 rounded-md border-2 border-mint"
+            style={{
+              gridRow: selectedShip.vertical
+                ? `${Math.floor(selectedShip.at / 10) + 2} / span ${CATALOG[selectedShip.id].size}`
+                : `${Math.floor(selectedShip.at / 10) + 2}`,
+              gridColumn: selectedShip.vertical
+                ? `${(selectedShip.at % 10) + 2}`
+                : `${(selectedShip.at % 10) + 2} / span ${CATALOG[selectedShip.id].size}`,
+            }}
+          />
+        )}
       </div>
     </section>
   );
