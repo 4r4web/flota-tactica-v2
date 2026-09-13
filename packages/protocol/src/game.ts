@@ -92,6 +92,7 @@ export const PlayerView = z.object({
   myFleet: z.array(OwnShip),
   enemyShips: z.array(EnemyShip),
   myShots: z.array(Cell),
+  myHits: z.array(Cell),
   myIncoming: z.array(Cell),
   contacts: z.array(Cell),
   rematch: z.object({ host: z.boolean(), guest: z.boolean() }),

@@ -152,6 +152,7 @@ export function BattleView({ view }: { view: PlayerView }) {
           label="Aguas rivales"
           contacts={view.contacts}
           shots={view.myShots}
+          hits={view.myHits}
           aim={aimCells}
           onCellClick={onEnemyCell}
           disabled={!active || aimMode === null}
@@ -166,7 +167,7 @@ export function BattleView({ view }: { view: PlayerView }) {
             cloaked: ship.cloaked,
           }))}
           selectedShipId={selectedShip}
-          incoming={view.myIncoming}
+          hits={view.myIncoming}
           onCellClick={(cell) => {
             const ship = view.myFleet.find((candidate) => cellsOf(candidate).includes(cell));
             if (ship !== undefined) {

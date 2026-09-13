@@ -229,6 +229,8 @@ describe('combat', () => {
     });
     expect(result).toMatchObject({ kind: 'attack', hits: [70, 71, 72], sunk: [] });
     expect(findShip(after, 'guest', 'sub').hp).toBe(3);
+    expect(viewFor(after, 'host').myHits).toEqual([70, 71, 72]);
+    expect(viewFor(after, 'guest').myIncoming).toEqual([70, 71, 72]);
   });
 
   it('sinks ships and ignores wrecks as targets', () => {

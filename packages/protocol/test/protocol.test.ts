@@ -100,6 +100,7 @@ describe('PlayerView', () => {
     ],
     enemyShips: [{ id: 'sub', sunk: false }],
     myShots: [],
+    myHits: [],
     myIncoming: [],
     contacts: [],
     rematch: { host: false, guest: false },

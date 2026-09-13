@@ -37,6 +37,8 @@ export interface PlayerState {
   fleet: ShipState[];
   /** Cells this player has fired at (public history). */
   shots: number[];
+  /** Cells where this player's shots hit an enemy ship. */
+  hits: number[];
   /** Cells where this player's ships were hit. */
   incoming: number[];
   /** Sonar contacts revealed this turn. */
@@ -101,6 +103,7 @@ export interface PlayerView {
   myFleet: OwnShipView[];
   enemyShips: EnemyShipView[];
   myShots: number[];
+  myHits: number[];
   myIncoming: number[];
   contacts: number[];
   rematch: { host: boolean; guest: boolean };

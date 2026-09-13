@@ -35,7 +35,15 @@ export function turnRole(state: GameState): Role {
 }
 
 function emptyPlayer(): PlayerState {
-  return { ready: false, rematch: false, fleet: [], shots: [], incoming: [], contacts: [] };
+  return {
+    ready: false,
+    rematch: false,
+    fleet: [],
+    shots: [],
+    hits: [],
+    incoming: [],
+    contacts: [],
+  };
 }
 
 export function createGame(id: string): GameState {
@@ -57,6 +65,7 @@ function clonePlayer(player: PlayerState): PlayerState {
     rematch: player.rematch,
     fleet: player.fleet.map((ship) => ({ ...ship, ledger: { ...ship.ledger } })),
     shots: [...player.shots],
+    hits: [...player.hits],
     incoming: [...player.incoming],
     contacts: [...player.contacts],
   };
@@ -369,6 +378,7 @@ export function applyCommand(
       const { hits, sunk } = resolveAttack(opponent, cells, CATALOG[ship.id].power);
       ship.ledger.attack = next.turn;
       actor.shots.push(...cells);
+      actor.hits.push(...hits);
       opponent.incoming.push(...hits);
       result = { kind: 'attack', ship: ship.id, hits, sunk };
 
@@ -470,6 +480,7 @@ export function viewFor(state: GameState, role: Role): PlayerView {
     myFleet: own.fleet.map((ship) => ownShipView(ship, state.turn)),
     enemyShips: enemy.fleet.map((ship) => ({ id: ship.id, sunk: ship.hp <= 0 })),
     myShots: [...own.shots],
+    myHits: [...own.hits],
     myIncoming: [...own.incoming],
     contacts: [...own.contacts],
     rematch: { host: state.players.host.rematch, guest: state.players.guest.rematch },
