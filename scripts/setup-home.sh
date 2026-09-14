@@ -20,12 +20,12 @@ if ! command -v docker >/dev/null 2>&1; then
   sudo bash scripts/bootstrap-docker.sh
 fi
 
-DOCKER="docker"
+DOCKER=(docker)
 if ! docker info >/dev/null 2>&1; then
-  DOCKER="sudo docker"
+  DOCKER=(sudo docker)
 fi
 
-COMPOSE=("${DOCKER}" compose --env-file .env.prod -f docker/compose.tunnel.yml)
+COMPOSE=("${DOCKER[@]}" compose --env-file .env.prod -f docker/compose.tunnel.yml)
 
 # 2. Entorno
 if [[ ! -f .env.prod ]]; then
@@ -65,6 +65,7 @@ echo "  Local:  http://localhost:8080"
 echo "  Estado: http://localhost:8080/status"
 echo "---------------------------------------------------------------"
 echo "  Acceso desde fuera (túnel):  bash scripts/tunnel.sh"
-echo "  Ver logs:                    ${DOCKER} compose --env-file .env.prod -f docker/compose.tunnel.yml logs -f server"
-echo "  Parar:                       ${DOCKER} compose --env-file .env.prod -f docker/compose.tunnel.yml down"
+echo "  URL fija (recomendado):      bash scripts/funnel-tailscale.sh"
+echo "  Ver logs:                    ${DOCKER[*]} compose --env-file .env.prod -f docker/compose.tunnel.yml logs -f server"
+echo "  Parar:                       ${DOCKER[*]} compose --env-file .env.prod -f docker/compose.tunnel.yml down"
 echo "==============================================================="
