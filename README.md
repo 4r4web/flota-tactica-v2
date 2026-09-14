@@ -20,6 +20,7 @@ Juego táctico naval por turnos para 2 jugadores. Re-implementación con arquite
 | [11 — VPS barato](docs/11-vps-barato.md) | VPS económico (Dinahosting y similares) |
 | [12 — AWS](docs/12-aws.md) | Equivalente en AWS (Lightsail / EC2) |
 | [13 — Comparativa de hosting](docs/13-comparativa-hosting.md) | VPS vs Cloudflare vs Firebase/Supabase |
+| [14 — Beta en Windows](docs/14-beta-windows.md) | Alojar la beta en un PC con Windows |
 
 ## Estructura
 
@@ -61,6 +62,7 @@ Para la **beta con coste 0**:
 
 - **Sin crear cuentas:** [túnel local](docs/09-beta-sin-cuentas.md) → `cp .env.prod.example .env.prod`, `pnpm beta:up`, `pnpm beta:migrate`, `pnpm beta:tunnel`.
 - **Autoalojada en una Raspberry Pi:** [guía de Raspberry Pi](docs/10-beta-raspberry-pi.md).
+- **Autoalojada en un PC con Windows:** [guía de Windows](docs/14-beta-windows.md).
 - **VPS barato (24/7):** [guía de VPS](docs/11-vps-barato.md).
 - **En AWS:** [guía de AWS](docs/12-aws.md) (Lightsail o EC2).
 - **En la nube gratuita:** [Oracle Cloud Always Free](docs/08-beta-gratuita.md).
