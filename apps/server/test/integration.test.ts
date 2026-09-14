@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import type { AddressInfo } from 'node:net';
 import { fileURLToPath } from 'node:url';
 
@@ -13,6 +13,7 @@ import { WebSocket } from 'ws';
 import { buildApp } from '../src/app.js';
 import { createTokenService } from '../src/auth/tokens.js';
 import type { Config } from '../src/config.js';
+import { passwordResetTokens } from '../src/db/schema.js';
 import type { AppDeps } from '../src/deps.js';
 import { createDb } from '../src/infra/db.js';
 import { createLogger } from '../src/infra/logger.js';
@@ -154,6 +155,8 @@ async function startContext(): Promise<TestContext> {
     rateLimitWindow: '1 minute',
     authRateLimitMax: 10_000,
     bodyLimit: 16_384,
+    mailFrom: 'Flota Táctica <no-reply@test.local>',
+    passwordResetTtl: 3600,
   };
 
   const database = createDb(databaseUrl);
@@ -186,15 +189,24 @@ async function startContext(): Promise<TestContext> {
   };
 }
 
-async function register(baseUrl: string, email: string): Promise<string> {
+interface RegisteredUser {
+  user: { id: string; email: string };
+  accessToken: string;
+  refreshToken: string;
+}
+
+async function registerUser(baseUrl: string, email: string): Promise<RegisteredUser> {
   const response = await fetch(`${baseUrl}/api/auth/register`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ email, password: 'password123', displayName: 'Tester' }),
   });
   expect(response.status).toBe(201);
-  const body = (await response.json()) as { accessToken: string };
-  return body.accessToken;
+  return (await response.json()) as RegisteredUser;
+}
+
+async function register(baseUrl: string, email: string): Promise<string> {
+  return (await registerUser(baseUrl, email)).accessToken;
 }
 
 const HOST_FLEET = [
@@ -321,6 +333,91 @@ describe('REST auth', () => {
     await expect(third.json()).resolves.toMatchObject({ error: { code: 'RATE_LIMITED' } });
 
     await limited.close();
+  });
+
+  it('changes the password while logged in', async () => {
+    const email = `change-${randomUUID()}@example.com`;
+    const account = await registerUser(context.baseUrl, email);
+
+    const changed = await fetch(`${context.baseUrl}/api/me/password`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        authorization: `Bearer ${account.accessToken}`,
+      },
+      body: JSON.stringify({ currentPassword: 'password123', newPassword: 'newpassword123' }),
+    });
+    expect(changed.status).toBe(204);
+
+    const oldLogin = await fetch(`${context.baseUrl}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ email, password: 'password123' }),
+    });
+    expect(oldLogin.status).toBe(401);
+
+    const newLogin = await fetch(`${context.baseUrl}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ email, password: 'newpassword123' }),
+    });
+    expect(newLogin.status).toBe(200);
+  });
+
+  it('rejects a wrong current password', async () => {
+    const email = `wrong-${randomUUID()}@example.com`;
+    const account = await registerUser(context.baseUrl, email);
+    const response = await fetch(`${context.baseUrl}/api/me/password`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        authorization: `Bearer ${account.accessToken}`,
+      },
+      body: JSON.stringify({ currentPassword: 'incorrect', newPassword: 'newpassword123' }),
+    });
+    expect(response.status).toBe(401);
+  });
+
+  it('resets a forgotten password with a valid token', async () => {
+    const email = `reset-${randomUUID()}@example.com`;
+    const account = await registerUser(context.baseUrl, email);
+
+    const forgot = await fetch(`${context.baseUrl}/api/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    expect(forgot.status).toBe(204);
+
+    const token = 'known-reset-token-abcdefghij';
+    await context.deps.db.insert(passwordResetTokens).values({
+      userId: account.user.id,
+      tokenHash: createHash('sha256').update(token).digest('hex'),
+      expiresAt: new Date(Date.now() + 3_600_000),
+    });
+
+    const reset = await fetch(`${context.baseUrl}/api/auth/reset-password`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ token, newPassword: 'resetpassword123' }),
+    });
+    expect(reset.status).toBe(204);
+
+    const login = await fetch(`${context.baseUrl}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ email, password: 'resetpassword123' }),
+    });
+    expect(login.status).toBe(200);
+  });
+
+  it('does not reveal whether an email exists', async () => {
+    const response = await fetch(`${context.baseUrl}/api/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ email: `nobody-${randomUUID()}@example.com` }),
+    });
+    expect(response.status).toBe(204);
   });
 
   it('rejects duplicate emails and bad credentials', async () => {

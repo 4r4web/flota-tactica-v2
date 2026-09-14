@@ -13,6 +13,10 @@ const EnvSchema = z.object({
   RATE_LIMIT_WINDOW: z.string().default('1 minute'),
   AUTH_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(10),
   BODY_LIMIT: z.coerce.number().int().positive().default(16_384),
+  APP_BASE_URL: z.string().url().optional(),
+  SMTP_URL: z.string().optional(),
+  MAIL_FROM: z.string().default('Flota Táctica <no-reply@flota.local>'),
+  PASSWORD_RESET_TTL: z.coerce.number().int().positive().default(3600),
 });
 
 export interface Config {
@@ -28,6 +32,10 @@ export interface Config {
   rateLimitWindow: string;
   authRateLimitMax: number;
   bodyLimit: number;
+  appBaseUrl?: string;
+  smtpUrl?: string;
+  mailFrom: string;
+  passwordResetTtl: number;
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
@@ -49,5 +57,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     rateLimitWindow: value.RATE_LIMIT_WINDOW,
     authRateLimitMax: value.AUTH_RATE_LIMIT_MAX,
     bodyLimit: value.BODY_LIMIT,
+    appBaseUrl: value.APP_BASE_URL,
+    smtpUrl: value.SMTP_URL,
+    mailFrom: value.MAIL_FROM,
+    passwordResetTtl: value.PASSWORD_RESET_TTL,
   };
 }

@@ -69,5 +69,25 @@ export const api = {
   logout: (refreshToken: string): Promise<void> =>
     request<void>('/auth/logout', { method: 'POST', body: JSON.stringify({ refreshToken }) }),
 
+  forgotPassword: (email: string): Promise<void> =>
+    request<void>('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }),
+
+  resetPassword: (token: string, newPassword: string): Promise<void> =>
+    request<void>('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ token, newPassword }),
+    }),
+
+  changePassword: (
+    accessToken: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<void> =>
+    request<void>(
+      '/me/password',
+      { method: 'POST', body: JSON.stringify({ currentPassword, newPassword }) },
+      accessToken,
+    ),
+
   me: (token: string): Promise<UserProfile> => request<UserProfile>('/me', {}, token),
 };

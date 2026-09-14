@@ -1,10 +1,10 @@
 import { useState } from 'react';
 
-import { ApiError } from '../api/rest';
+import { ApiError, api } from '../api/rest';
 import { errorMessage } from '../lib/errors';
 import { useAuth } from '../store/auth';
 
-type Mode = 'login' | 'register';
+type Mode = 'login' | 'register' | 'forgot';
 
 export function AuthScreen() {
   const [mode, setMode] = useState<Mode>('login');
@@ -13,6 +13,7 @@ export function AuthScreen() {
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [sent, setSent] = useState(false);
 
   const login = useAuth((state) => state.login);
   const register = useAuth((state) => state.register);
@@ -24,8 +25,11 @@ export function AuthScreen() {
     try {
       if (mode === 'login') {
         await login({ email, password });
-      } else {
+      } else if (mode === 'register') {
         await register({ email, password, displayName });
+      } else {
+        await api.forgotPassword(email);
+        setSent(true);
       }
     } catch (caught) {
       setError(
@@ -35,6 +39,74 @@ export function AuthScreen() {
       setBusy(false);
     }
   };
+
+  if (mode === 'forgot') {
+    return (
+      <div className="mx-auto mt-10 w-full max-w-sm rounded-xl border border-sea-700 bg-sea-900 p-6">
+        <h2 className="text-center text-lg font-bold text-mint">Recuperar contraseña</h2>
+
+        {sent ? (
+          <div className="mt-4 space-y-3 text-sm text-ink">
+            <p>
+              Si <strong>{email}</strong> corresponde a una cuenta, te hemos enviado un enlace para
+              restablecer la contraseña.
+            </p>
+            <p className="text-xs text-muted">
+              Revisa también la carpeta de spam. El enlace caduca pronto y solo puede usarse una
+              vez.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setMode('login');
+                setSent(false);
+                setError(null);
+              }}
+              className="w-full rounded-lg bg-mint px-4 py-2 font-semibold text-sea-950 hover:brightness-110"
+            >
+              Volver a iniciar sesión
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={(event) => void submit(event)} className="mt-4 space-y-3">
+            <p className="text-xs text-muted">
+              Escribe tu correo y te enviaremos un enlace para elegir una nueva contraseña.
+            </p>
+            <label className="block text-xs text-muted">
+              Correo
+              <input
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                required
+                className="mt-1 w-full rounded-md border border-sea-700 bg-sea-950 px-3 py-2 text-sm text-ink outline-none focus:border-mint"
+              />
+            </label>
+
+            {error !== null && <p className="text-xs text-coral">{error}</p>}
+
+            <button
+              type="submit"
+              disabled={busy}
+              className="w-full rounded-lg bg-mint px-4 py-2 font-semibold text-sea-950 hover:brightness-110 disabled:opacity-60"
+            >
+              {busy ? 'Enviando…' : 'Enviar enlace'}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMode('login');
+                setError(null);
+              }}
+              className="w-full text-center text-xs text-muted hover:text-ink"
+            >
+              Volver
+            </button>
+          </form>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto mt-10 w-full max-w-sm rounded-xl border border-sea-700 bg-sea-900 p-6">
@@ -109,6 +181,19 @@ export function AuthScreen() {
         >
           {busy ? 'Un momento…' : mode === 'login' ? 'Entrar' : 'Crear cuenta'}
         </button>
+
+        {mode === 'login' && (
+          <button
+            type="button"
+            onClick={() => {
+              setMode('forgot');
+              setError(null);
+            }}
+            className="w-full text-center text-xs text-muted hover:text-mint"
+          >
+            ¿Olvidaste tu contraseña?
+          </button>
+        )}
       </form>
     </div>
   );

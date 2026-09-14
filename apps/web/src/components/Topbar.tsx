@@ -10,7 +10,13 @@ const STATUS_LABEL: Record<string, string> = {
   disconnected: 'Desconectado',
 };
 
-export function Topbar({ onOpenRules }: { onOpenRules: () => void }) {
+export function Topbar({
+  onOpenRules,
+  onOpenAccount,
+}: {
+  onOpenRules: () => void;
+  onOpenAccount: () => void;
+}) {
   const user = useAuth((state) => state.user);
   const logout = useAuth((state) => state.logout);
   const status = useGame((state) => state.status);
@@ -74,6 +80,13 @@ export function Topbar({ onOpenRules }: { onOpenRules: () => void }) {
         {user !== null && (
           <>
             <span className="hidden text-muted sm:inline">{user.displayName}</span>
+            <button
+              type="button"
+              onClick={onOpenAccount}
+              className="rounded-md border border-sea-700 px-3 py-1 text-ink hover:border-mint hover:text-mint"
+            >
+              Cuenta
+            </button>
             <button
               type="button"
               onClick={handleLogout}

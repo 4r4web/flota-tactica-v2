@@ -1,8 +1,10 @@
 import { and, eq, isNull } from 'drizzle-orm';
 
-import { refreshTokens, users } from '../db/schema.js';
+import type { Config } from '../config.js';
+import { passwordResetTokens, refreshTokens, users } from '../db/schema.js';
 import { AppError } from '../errors.js';
 import type { Database } from '../infra/db.js';
+import type { Mailer } from './mailer.js';
 import { hashPassword, verifyPassword } from './password.js';
 import type { TokenService } from './tokens.js';
 
@@ -38,6 +40,9 @@ export interface AuthService {
   getProfile(userId: string): Promise<UserProfile>;
   updateProfile(userId: string, displayName: string): Promise<UserProfile>;
   deleteAccount(userId: string): Promise<void>;
+  forgotPassword(email: string, baseUrl: string): Promise<void>;
+  resetPassword(token: string, newPassword: string): Promise<void>;
+  changePassword(userId: string, currentPassword: string, newPassword: string): Promise<void>;
 }
 
 type UserRow = typeof users.$inferSelect;
@@ -51,7 +56,12 @@ function toProfile(user: UserRow): UserProfile {
   };
 }
 
-export function createAuthService(db: Database, tokens: TokenService): AuthService {
+export function createAuthService(
+  db: Database,
+  tokens: TokenService,
+  mailer: Mailer,
+  config: Config,
+): AuthService {
   async function issue(
     userId: string,
     userAgent?: string,
@@ -164,6 +174,74 @@ export function createAuthService(db: Database, tokens: TokenService): AuthServi
       await db
         .update(users)
         .set({ deletedAt: new Date(), updatedAt: new Date() })
+        .where(eq(users.id, userId));
+      await db
+        .update(refreshTokens)
+        .set({ revokedAt: new Date() })
+        .where(eq(refreshTokens.userId, userId));
+    },
+
+    async forgotPassword(email, baseUrl) {
+      const normalized = email.toLowerCase();
+      const found = await db.select().from(users).where(eq(users.email, normalized)).limit(1);
+      const user = found[0];
+      // Never reveal whether the email exists.
+      if (user === undefined || user.deletedAt !== null || user.passwordHash === null) {
+        return;
+      }
+      const token = tokens.createRefreshToken();
+      await db.insert(passwordResetTokens).values({
+        userId: user.id,
+        tokenHash: tokens.hashRefreshToken(token),
+        expiresAt: new Date(Date.now() + config.passwordResetTtl * 1000),
+      });
+      const resetUrl = `${baseUrl}/reset?token=${encodeURIComponent(token)}`;
+      await mailer.sendPasswordReset(user.email, resetUrl);
+    },
+
+    async resetPassword(token, newPassword) {
+      const tokenHash = tokens.hashRefreshToken(token);
+      const found = await db
+        .select()
+        .from(passwordResetTokens)
+        .where(eq(passwordResetTokens.tokenHash, tokenHash))
+        .limit(1);
+      const row = found[0];
+      if (row === undefined || row.usedAt !== null) {
+        throw new AppError(400, 'INVALID_ACTION', 'invalid or already used reset token');
+      }
+      if (row.expiresAt.getTime() <= Date.now()) {
+        throw new AppError(400, 'INVALID_ACTION', 'reset token expired');
+      }
+      const passwordHash = await hashPassword(newPassword);
+      await db
+        .update(users)
+        .set({ passwordHash, updatedAt: new Date() })
+        .where(eq(users.id, row.userId));
+      await db
+        .update(passwordResetTokens)
+        .set({ usedAt: new Date() })
+        .where(eq(passwordResetTokens.id, row.id));
+      await db
+        .update(refreshTokens)
+        .set({ revokedAt: new Date() })
+        .where(eq(refreshTokens.userId, row.userId));
+    },
+
+    async changePassword(userId, currentPassword, newPassword) {
+      const found = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+      const user = found[0];
+      if (user === undefined || user.passwordHash === null) {
+        throw new AppError(400, 'INVALID_ACTION', 'this account has no password');
+      }
+      const valid = await verifyPassword(user.passwordHash, currentPassword);
+      if (!valid) {
+        throw new AppError(401, 'AUTH_INVALID', 'current password is incorrect');
+      }
+      const passwordHash = await hashPassword(newPassword);
+      await db
+        .update(users)
+        .set({ passwordHash, updatedAt: new Date() })
         .where(eq(users.id, userId));
       await db
         .update(refreshTokens)

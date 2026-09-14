@@ -2,10 +2,13 @@ export { ApiError, Envelope, ERROR_CODES, ErrorCode, PROTOCOL_VERSION } from './
 
 export {
   AuthResponse,
+  ChangePasswordRequest,
+  ForgotPasswordRequest,
   LoginRequest,
   LogoutRequest,
   RefreshRequest,
   RegisterRequest,
+  ResetPasswordRequest,
   TokenResponse,
   UpdateProfileRequest,
   UserProfile,

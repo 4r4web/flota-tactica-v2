@@ -26,6 +26,7 @@
     "fastify": "^5.12.3",
     "ioredis": "^6.0.0",
     "jose": "^6.2.12",
+    "nodemailer": "^10.0.9",
     "pino": "^10.3.1",
     "postgres": "^3.4.9",
     "prom-client": "^15.1.3",
@@ -34,6 +35,7 @@
   "devDependencies": {
     "@flota/config": "workspace:*",
     "@types/node": "^24.0.0",
+    "@types/nodemailer": "^8.0.1",
     "@types/ws": "^8.18.1",
     "drizzle-kit": "^0.31.10",
     "testcontainers": "^12.1.0",
