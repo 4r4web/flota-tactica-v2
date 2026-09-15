@@ -182,3 +182,16 @@ gameSocket.onMessage((message) => {
       break;
   }
 });
+
+// Resync when the tab becomes visible again (mobile browsers suspend the socket).
+if (typeof document !== 'undefined') {
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') {
+      return;
+    }
+    const { gameId, status } = useGame.getState();
+    if (gameId !== null && status === 'connected') {
+      gameSocket.send('game.resume', { gameId });
+    }
+  });
+}
