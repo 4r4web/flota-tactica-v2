@@ -29,7 +29,7 @@ if [[ $# -ge 1 ]]; then
 fi
 
 echo "=== Últimas partidas ==="
-psql "select g.created_at, g.status, g.mode, coalesce(u.display_name,'-') as ganador
+psql "select g.id, g.created_at, g.status, g.mode, coalesce(u.display_name,'-') as ganador
       from games g left join users u on u.id = g.winner_user_id
       order by g.created_at desc limit 15;"
 

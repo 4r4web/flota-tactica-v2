@@ -89,6 +89,7 @@ export function AdminScreen() {
             <thead className="bg-sea-800 text-muted">
               <tr>
                 <th className="px-3 py-2">Fecha</th>
+                <th className="px-3 py-2">ID</th>
                 <th className="px-3 py-2">Modo</th>
                 <th className="px-3 py-2">Estado</th>
                 <th className="px-3 py-2">Ganador</th>
@@ -129,6 +130,16 @@ function FragmentRow({
     <>
       <tr className="border-t border-sea-800 align-top">
         <td className="px-3 py-2 text-ink">{formatDate(match.createdAt)}</td>
+        <td className="px-3 py-2">
+          <button
+            type="button"
+            title={`${match.id} (clic para copiar)`}
+            onClick={() => void navigator.clipboard?.writeText(match.id)}
+            className="font-mono text-[11px] text-muted hover:text-mint"
+          >
+            {match.id.slice(0, 8)}
+          </button>
+        </td>
         <td className="px-3 py-2 text-muted">{match.mode}</td>
         <td className="px-3 py-2 text-muted">{match.status}</td>
         <td className="px-3 py-2 text-mint">{match.winnerName ?? '—'}</td>
@@ -152,7 +163,7 @@ function FragmentRow({
       </tr>
       {open && (
         <tr className="border-t border-sea-800 bg-sea-950">
-          <td colSpan={6} className="px-3 py-2">
+          <td colSpan={7} className="px-3 py-2">
             {events.length === 0 ? (
               <span className="text-muted">Sin acciones registradas.</span>
             ) : (
