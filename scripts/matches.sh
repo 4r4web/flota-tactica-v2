@@ -24,7 +24,11 @@ psql() { "${COMPOSE[@]}" exec -T postgres psql -U "${PGUSER}" -d "${PGDB}" -c "$
 if [[ $# -ge 1 ]]; then
   GAME_ID="$1"
   echo "=== Acciones de la partida ${GAME_ID} ==="
-  psql "select seq, turn, type, payload from game_events where game_id = '${GAME_ID}' order by seq;"
+  psql "select e.seq, e.turn, coalesce(u.display_name,'-') as autor, e.type, e.payload
+        from game_events e
+        left join users u on u.id = e.actor_user_id
+        where e.game_id = '${GAME_ID}'
+        order by e.seq;"
   exit 0
 fi
 
