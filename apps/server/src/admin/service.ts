@@ -24,6 +24,7 @@ export interface AdminGameEvent {
   seq: number;
   turn: number;
   type: string;
+  actor: string | null;
   payload: unknown;
   createdAt: string;
 }
@@ -106,8 +107,10 @@ export function createAdminService(db: Database, adminEmail: string): AdminServi
           type: gameEvents.type,
           payload: gameEvents.payload,
           createdAt: gameEvents.createdAt,
+          actor: users.displayName,
         })
         .from(gameEvents)
+        .leftJoin(users, eq(users.id, gameEvents.actorUserId))
         .where(eq(gameEvents.gameId, gameId))
         .orderBy(gameEvents.seq);
 
@@ -115,6 +118,7 @@ export function createAdminService(db: Database, adminEmail: string): AdminServi
         seq: row.seq,
         turn: row.turn,
         type: row.type,
+        actor: row.actor ?? null,
         payload: row.payload,
         createdAt: row.createdAt.toISOString(),
       }));

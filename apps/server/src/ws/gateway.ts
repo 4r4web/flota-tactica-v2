@@ -283,6 +283,7 @@ function attachSocket(ctx: HandlerContext, socket: WebSocket, userId: string): v
         .activeGame(userId)
         .then((stored) => {
           if (stored !== null) {
+            ctx.deps.logger.info({ userId, gameId: stored.meta.id }, 'player offline');
             broadcastPresence(hub, stored);
           }
         })
@@ -323,6 +324,7 @@ export function wsRoutes(
             .activeGame(userId)
             .then((stored) => {
               if (stored !== null) {
+                ctx.deps.logger.info({ userId, gameId: stored.meta.id }, 'player online');
                 broadcastPresence(hub, stored);
               }
             })

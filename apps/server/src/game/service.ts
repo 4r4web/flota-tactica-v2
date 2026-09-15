@@ -180,10 +180,11 @@ export function createGameService(deps: AppDeps, metrics?: Metrics): GameService
           throw new AppError(409, 'SEQ_MISMATCH', 'sequence mismatch');
         }
 
+        const actionTurn = stored.state.turn;
         const { state, result } = applyCommand(stored.state, role, cmd);
         stored.state = state;
         await store.save(stored);
-        await recordEvent(deps.db, stored, userId, cmd.kind, { cmd, result });
+        await recordEvent(deps.db, stored, userId, cmd.kind, { cmd, result }, actionTurn);
 
         if (state.status === 'finished' && !stored.meta.persisted) {
           await persistFinishedGame(deps.db, stored);

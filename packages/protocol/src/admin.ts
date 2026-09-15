@@ -27,6 +27,7 @@ export const AdminGameEvent = z.object({
   seq: z.number().int(),
   turn: z.number().int(),
   type: z.string(),
+  actor: z.string().nullable(),
   payload: z.unknown(),
   createdAt: z.string(),
 });

@@ -18,12 +18,13 @@ export async function recordEvent(
   actorUserId: string,
   type: string,
   payload: unknown,
+  turn: number,
 ): Promise<void> {
   await db.insert(gameEvents).values({
     gameId: stored.meta.id,
     epoch: stored.state.epoch,
     seq: stored.state.seq,
-    turn: stored.state.turn,
+    turn,
     actorUserId,
     type,
     payload,

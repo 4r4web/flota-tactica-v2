@@ -159,8 +159,9 @@ function FragmentRow({
               <ol className="space-y-1">
                 {events.map((event) => (
                   <li key={event.seq} className="font-mono text-[11px] text-muted">
-                    #{event.seq} T{event.turn} <span className="text-ink">{event.type}</span>{' '}
-                    {JSON.stringify(event.payload)}
+                    #{event.seq} T{event.turn}{' '}
+                    <span className="text-amber">{event.actor ?? '—'}</span>{' '}
+                    <span className="text-ink">{event.type}</span> {JSON.stringify(event.payload)}
                   </li>
                 ))}
               </ol>
