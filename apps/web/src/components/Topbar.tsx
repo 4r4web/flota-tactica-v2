@@ -77,6 +77,15 @@ export function Topbar({
           </button>
         )}
 
+        {user?.isAdmin === true && (
+          <a
+            href="/admin"
+            className="rounded-md border border-amber px-3 py-1 text-amber hover:bg-amber/10"
+          >
+            Admin
+          </a>
+        )}
+
         {user !== null && (
           <>
             <span className="hidden text-muted sm:inline">{user.displayName}</span>

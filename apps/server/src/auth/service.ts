@@ -13,6 +13,7 @@ export interface UserProfile {
   email: string;
   displayName: string;
   createdAt: string;
+  isAdmin: boolean;
 }
 
 export interface AuthResult {
@@ -47,12 +48,13 @@ export interface AuthService {
 
 type UserRow = typeof users.$inferSelect;
 
-function toProfile(user: UserRow): UserProfile {
+function toProfile(user: UserRow, adminEmail: string): UserProfile {
   return {
     id: user.id,
     email: user.email,
     displayName: user.displayName,
     createdAt: user.createdAt.toISOString(),
+    isAdmin: user.email.toLowerCase() === adminEmail.toLowerCase(),
   };
 }
 
@@ -94,7 +96,7 @@ export function createAuthService(
         throw new AppError(500, 'INTERNAL', 'could not create user');
       }
       const issued = await issue(user.id, userAgent);
-      return { user: toProfile(user), ...issued };
+      return { user: toProfile(user, config.adminEmail), ...issued };
     },
 
     async login(input, userAgent) {
@@ -109,7 +111,7 @@ export function createAuthService(
         throw new AppError(401, 'AUTH_INVALID', 'invalid credentials');
       }
       const issued = await issue(user.id, userAgent);
-      return { user: toProfile(user), ...issued };
+      return { user: toProfile(user, config.adminEmail), ...issued };
     },
 
     async refresh(refreshToken, userAgent) {
@@ -137,7 +139,7 @@ export function createAuthService(
         throw new AppError(401, 'AUTH_INVALID', 'user not found');
       }
       const issued = await issue(user.id, userAgent);
-      return { user: toProfile(user), ...issued };
+      return { user: toProfile(user, config.adminEmail), ...issued };
     },
 
     async logout(refreshToken) {
@@ -154,7 +156,7 @@ export function createAuthService(
       if (user === undefined || user.deletedAt !== null) {
         throw new AppError(401, 'AUTH_REQUIRED', 'user not found');
       }
-      return toProfile(user);
+      return toProfile(user, config.adminEmail);
     },
 
     async updateProfile(userId, displayName) {
@@ -167,7 +169,7 @@ export function createAuthService(
       if (user === undefined) {
         throw new AppError(401, 'AUTH_REQUIRED', 'user not found');
       }
-      return toProfile(user);
+      return toProfile(user, config.adminEmail);
     },
 
     async deleteAccount(userId) {

@@ -10,6 +10,7 @@ import type { FastifyError } from 'fastify';
 import { ZodError } from 'zod';
 
 import { authRoutes } from './auth/routes.js';
+import { adminRoutes } from './admin/routes.js';
 import type { AppDeps } from './deps.js';
 import { isAppError } from './errors.js';
 import { createGameService } from './game/service.js';
@@ -90,6 +91,7 @@ export async function buildApp(deps: AppDeps) {
   const service = createGameService(deps, metrics);
 
   await app.register(authRoutes(deps), { prefix: '/api' });
+  await app.register(adminRoutes(deps), { prefix: '/api' });
   await app.register(wsRoutes(deps, hub, service, metrics));
 
   app.addHook('onResponse', (request, reply, done) => {

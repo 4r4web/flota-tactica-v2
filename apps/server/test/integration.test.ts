@@ -157,6 +157,7 @@ async function startContext(): Promise<TestContext> {
     bodyLimit: 16_384,
     mailFrom: 'Flota Táctica <no-reply@test.local>',
     passwordResetTtl: 3600,
+    adminEmail: 'admin@test.local',
   };
 
   const database = createDb(databaseUrl);
@@ -418,6 +419,27 @@ describe('REST auth', () => {
       body: JSON.stringify({ email: `nobody-${randomUUID()}@example.com` }),
     });
     expect(response.status).toBe(204);
+  });
+
+  it('restricts admin endpoints to the admin user', async () => {
+    const normal = await registerUser(context.baseUrl, `normal-${randomUUID()}@example.com`);
+    const forbidden = await fetch(`${context.baseUrl}/api/admin/matches`, {
+      headers: { authorization: `Bearer ${normal.accessToken}` },
+    });
+    expect(forbidden.status).toBe(403);
+
+    const admin = await registerUser(context.baseUrl, 'admin@test.local');
+    const allowed = await fetch(`${context.baseUrl}/api/admin/matches`, {
+      headers: { authorization: `Bearer ${admin.accessToken}` },
+    });
+    expect(allowed.status).toBe(200);
+    const body = (await allowed.json()) as { matches: unknown[] };
+    expect(Array.isArray(body.matches)).toBe(true);
+
+    const me = await fetch(`${context.baseUrl}/api/me`, {
+      headers: { authorization: `Bearer ${admin.accessToken}` },
+    });
+    await expect(me.json()).resolves.toMatchObject({ isAdmin: true });
   });
 
   it('rejects duplicate emails and bad credentials', async () => {

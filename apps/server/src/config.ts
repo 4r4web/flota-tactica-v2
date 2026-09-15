@@ -17,6 +17,7 @@ const EnvSchema = z.object({
   SMTP_URL: z.string().optional(),
   MAIL_FROM: z.string().default('Flota Táctica <no-reply@flota.local>'),
   PASSWORD_RESET_TTL: z.coerce.number().int().positive().default(3600),
+  ADMIN_EMAIL: z.string().email().default('arampg@gmail.com'),
 });
 
 export interface Config {
@@ -36,6 +37,7 @@ export interface Config {
   smtpUrl?: string;
   mailFrom: string;
   passwordResetTtl: number;
+  adminEmail: string;
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
@@ -61,5 +63,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     smtpUrl: value.SMTP_URL,
     mailFrom: value.MAIL_FROM,
     passwordResetTtl: value.PASSWORD_RESET_TTL,
+    adminEmail: value.ADMIN_EMAIL,
   };
 }

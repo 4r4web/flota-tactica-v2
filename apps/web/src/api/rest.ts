@@ -1,4 +1,9 @@
-import type { AuthResponse, UserProfile } from '@flota/protocol';
+import type {
+  AdminGameEventsResponse,
+  AdminMatchesResponse,
+  AuthResponse,
+  UserProfile,
+} from '@flota/protocol';
 
 const BASE = '/api';
 
@@ -90,4 +95,10 @@ export const api = {
     ),
 
   me: (token: string): Promise<UserProfile> => request<UserProfile>('/me', {}, token),
+
+  adminMatches: (accessToken: string, limit = 50): Promise<AdminMatchesResponse> =>
+    request<AdminMatchesResponse>(`/admin/matches?limit=${limit}`, {}, accessToken),
+
+  adminMatchEvents: (accessToken: string, gameId: string): Promise<AdminGameEventsResponse> =>
+    request<AdminGameEventsResponse>(`/admin/matches/${gameId}/events`, {}, accessToken),
 };

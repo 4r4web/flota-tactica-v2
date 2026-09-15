@@ -30,3 +30,18 @@ export {
 
 export { ClientMessage, ServerMessage } from './messages.js';
 export type { ClientMessageType, ServerMessageType } from './messages.js';
+
+export {
+  AdminGameEvent,
+  AdminGameEventsResponse,
+  AdminMatch,
+  AdminMatchPlayer,
+  AdminMatchesResponse,
+} from './admin.js';
+export type {
+  AdminGameEvent as AdminGameEventType,
+  AdminGameEventsResponse as AdminGameEventsResponseType,
+  AdminMatch as AdminMatchType,
+  AdminMatchPlayer as AdminMatchPlayerType,
+  AdminMatchesResponse as AdminMatchesResponseType,
+} from './admin.js';

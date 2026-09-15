@@ -42,6 +42,7 @@ export const UserProfile = z.object({
   email: z.string().email(),
   displayName: z.string(),
   createdAt: z.string(),
+  isAdmin: z.boolean(),
 });
 
 export const AuthResponse = z.object({

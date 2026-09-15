@@ -5,6 +5,7 @@ import { ErrorToast } from './components/ErrorToast';
 import { RulesModal } from './components/RulesModal';
 import { Topbar } from './components/Topbar';
 import { AuthScreen } from './screens/AuthScreen';
+import { AdminScreen } from './screens/AdminScreen';
 import { GameScreen } from './screens/GameScreen';
 import { LobbyScreen } from './screens/LobbyScreen';
 import { StatusScreen } from './screens/StatusScreen';
@@ -37,6 +38,8 @@ export function App() {
     body = <ResetScreen />;
   } else if (path === '/status') {
     body = <StatusScreen />;
+  } else if (path === '/admin') {
+    body = <AdminScreen />;
   } else if (user === null) {
     body = <AuthScreen />;
   } else if (view === null || waitingForOpponent) {
