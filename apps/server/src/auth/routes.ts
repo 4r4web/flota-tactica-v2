@@ -15,19 +15,18 @@ import { authenticateRequest } from './authenticate.js';
 import { createMailer } from './mailer.js';
 import { createAuthService } from './service.js';
 
+function firstHeader(value: string | string[] | undefined): string | undefined {
+  const raw = Array.isArray(value) ? value[0] : value;
+  const trimmed = raw?.split(',')[0]?.trim();
+  return trimmed !== undefined && trimmed !== '' ? trimmed : undefined;
+}
+
 function baseUrlFromRequest(request: FastifyRequest, config: Config): string {
   if (config.appBaseUrl !== undefined && config.appBaseUrl !== '') {
     return config.appBaseUrl.replace(/\/+$/, '');
   }
-  const forwardedProto = request.headers['x-forwarded-proto'];
-  const forwardedHost = request.headers['x-forwarded-host'];
-  const proto =
-    (typeof forwardedProto === 'string' ? forwardedProto.split(',')[0]?.trim() : undefined) ??
-    request.protocol;
-  const host =
-    (typeof forwardedHost === 'string' ? forwardedHost.split(',')[0]?.trim() : undefined) ??
-    request.headers.host ??
-    'localhost';
+  const proto = firstHeader(request.headers['x-forwarded-proto']) ?? request.protocol;
+  const host = firstHeader(request.headers['x-forwarded-host']) ?? request.headers.host ?? 'localhost';
   return `${proto}://${host}`;
 }
 
