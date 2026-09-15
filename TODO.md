@@ -46,6 +46,10 @@ Marcado como `[ ]` lo pendiente y `[x]` lo ya resuelto. Se irá actualizando.
 - [ ] **Historial de partidas y estadísticas** por usuario (fuera del MVP; el esquema ya guarda `games`, `game_players`, `game_events`).
 - [ ] **Backlog de producto**: espectadores, torneos, más barcos/modos (`docs/06-roadmap.md`).
 
+### Administración
+- [ ] **Portal de administración separado** (`apps/admin`) o herramienta de BI (Metabase/Grafana) contra una réplica de solo lectura, servido **solo por Tailscale** y con auth endurecida (MFA, audit log). Ver ADR-029. Hoy existe `/admin` dentro de la app (suficiente para la beta).
+- [ ] **Historial y estadísticas para el usuario final** (no solo admin): sus partidas, resultados y evolución.
+
 ### Legal / RGPD
 - [ ] **Política de privacidad y términos de uso.**
 - [ ] **Revisar base legal, minimización de datos y plazos de retención.**

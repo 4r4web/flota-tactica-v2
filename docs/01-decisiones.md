@@ -32,6 +32,7 @@ Este documento recoge las decisiones de arquitectura y proceso tomadas para Flot
 | ADR-026 | Beta con coste 0 en Oracle Cloud Always Free | Aceptada |
 | ADR-027 | Beta sin cuentas: local + túnel gratuito | Aceptada |
 | ADR-028 | Beta autoalojada en Raspberry Pi | Aceptada |
+| ADR-029 | Portal de administración separado a medio plazo | Aceptada |
 
 ---
 
@@ -368,6 +369,18 @@ Este documento recoge las decisiones de arquitectura y proceso tomadas para Flot
 **Consecuencias.**
 - Positivas: coste 0 y control total; sin cuentas; WebSocket estable; las imágenes ya son ARM64.
 - Negativas: depende de la red eléctrica y doméstica; el desgaste de la microSD aconseja SSD; capacidad limitada a unos pocos testers simultáneos.
+
+---
+
+## ADR-029 — Portal de administración separado a medio plazo
+
+**Contexto.** La app incluye una pantalla `/admin` con el historial de partidas (accesible solo al correo admin). A medida que crezcan la analítica (telemetría de retención, `docs/17`) y las necesidades de administración, mantenerlas dentro de la app del jugador engorda el bundle, mezcla responsabilidades y comparte superficie de seguridad. Además, un panel de administración **no debería estar expuesto a Internet**.
+
+**Decisión.** Mantener **a corto plazo** la pantalla admin dentro de la app (barata y suficiente para la beta), con el backend ya **desacoplado** en `/api/admin/*` (protegido por `ADMIN_EMAIL`). A **medio plazo**, extraer un **portal de administración separado** (`apps/admin`) —o usar una **herramienta de BI** como Metabase/Grafana contra una **réplica de solo lectura**— servido **solo dentro del tailnet de Tailscale** (o con lista de IPs) y con **auth endurecida** (sesión corta, MFA y *audit log* de accesos).
+
+**Consecuencias.**
+- Positivas: aislamiento de seguridad (el panel no se publica en Internet), dashboards ricos sin engordar el bundle del jugador, y administración independiente del despliegue del juego.
+- Negativas: una app o servicio más que mantener y posible duplicación de auth/UI.
 
 ---
 
