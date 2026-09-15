@@ -245,6 +245,8 @@ async function handleMessage(ctx: HandlerContext, userId: string, raw: RawData):
           view: viewFor(resumed.stored.state, resumed.role),
         }),
       );
+      // Resync both clients so a stale view cannot linger after a reconnect.
+      broadcastState(hub, resumed.stored);
       broadcastPresence(hub, resumed.stored);
       return;
     }
