@@ -1,4 +1,5 @@
 export {
+  areAdjacent,
   attackCells,
   BOARD_SIZE,
   CELL_COUNT,

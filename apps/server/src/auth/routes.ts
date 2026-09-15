@@ -26,7 +26,8 @@ function baseUrlFromRequest(request: FastifyRequest, config: Config): string {
     return config.appBaseUrl.replace(/\/+$/, '');
   }
   const proto = firstHeader(request.headers['x-forwarded-proto']) ?? request.protocol;
-  const host = firstHeader(request.headers['x-forwarded-host']) ?? request.headers.host ?? 'localhost';
+  const host =
+    firstHeader(request.headers['x-forwarded-host']) ?? request.headers.host ?? 'localhost';
   return `${proto}://${host}`;
 }
 

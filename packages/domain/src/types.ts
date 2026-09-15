@@ -41,6 +41,8 @@ export interface PlayerState {
   hits: number[];
   /** Cells where this player's ships were hit. */
   incoming: number[];
+  /** Enemy misses that landed next to one of this player's live ships. */
+  nearMisses: number[];
   /** Sonar contacts revealed this turn. */
   contacts: number[];
 }
@@ -105,6 +107,7 @@ export interface PlayerView {
   myShots: number[];
   myHits: number[];
   myIncoming: number[];
+  myNearMisses: number[];
   contacts: number[];
   rematch: { host: boolean; guest: boolean };
   winner: 'me' | 'peer' | null;

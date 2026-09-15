@@ -44,13 +44,16 @@ interface Occupancy {
   tile: number;
   anchor: boolean;
   vertical: boolean;
-  sunk: boolean;
   cloaked: boolean;
 }
 
 function buildOccupancy(ships: BoardShip[]): Map<number, Occupancy> {
   const map = new Map<number, Occupancy>();
   for (const ship of ships) {
+    // Sunk ships leave the board.
+    if ((ship.hp ?? 1) <= 0) {
+      continue;
+    }
     const cells = cellsOf(ship);
     cells.forEach((cell, index) => {
       map.set(cell, {
@@ -58,7 +61,6 @@ function buildOccupancy(ships: BoardShip[]): Map<number, Occupancy> {
         tile: index,
         anchor: index === 0,
         vertical: ship.vertical,
-        sunk: (ship.hp ?? 1) <= 0,
         cloaked: ship.cloaked ?? false,
       });
     });
@@ -187,21 +189,14 @@ export function Board({
                   className={cn(
                     'relative flex aspect-square items-center justify-center rounded-[3px] transition-colors',
                     'bg-sea-800 text-muted',
-                    occupied !== undefined && !occupied.sunk && 'bg-sea-600',
-                    occupied?.sunk && 'bg-sea-700',
+                    occupied !== undefined && 'bg-sea-600',
                     isContact && occupied === undefined && 'bg-amber/20 text-amber',
                     isAim && 'outline outline-2 outline-amber',
                     disabled ? 'cursor-default' : 'cursor-pointer hover:brightness-125',
                   )}
                 >
                   {occupied !== undefined && (
-                    <span
-                      className={cn(
-                        'absolute inset-0',
-                        occupied.sunk && 'opacity-50 grayscale',
-                        occupied.cloaked && 'opacity-80',
-                      )}
-                    >
+                    <span className={cn('absolute inset-0', occupied.cloaked && 'opacity-80')}>
                       <ShipSprite
                         id={occupied.shipId}
                         tile={occupied.tile}

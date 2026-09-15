@@ -233,6 +233,28 @@ describe('combat', () => {
     expect(viewFor(after, 'guest').myIncoming).toEqual([70, 71, 72]);
   });
 
+  it('shows misses next to a live ship on the defender board', () => {
+    const state = started();
+    // Cannon shot at 80 misses but is adjacent to the guest scout at 90.
+    const { state: after } = applyCommand(state, 'host', {
+      kind: 'attack',
+      ship: 'scout',
+      target: 80,
+      axis: 'row',
+    });
+    expect(viewFor(after, 'guest').myNearMisses).toContain(80);
+    expect(viewFor(after, 'host').myHits).toEqual([]);
+
+    // A miss far from any guest ship is not recorded.
+    const far = applyCommand(state, 'host', {
+      kind: 'attack',
+      ship: 'scout',
+      target: 5,
+      axis: 'row',
+    });
+    expect(viewFor(far.state, 'guest').myNearMisses).not.toContain(5);
+  });
+
   it('sinks ships and ignores wrecks as targets', () => {
     let state = started();
     state = setHp(state, 'guest', 'scout', 1);

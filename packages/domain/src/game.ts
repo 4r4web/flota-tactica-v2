@@ -1,4 +1,5 @@
 import {
+  areAdjacent,
   attackCells,
   cellsOf,
   isValidCell,
@@ -42,6 +43,7 @@ function emptyPlayer(): PlayerState {
     shots: [],
     hits: [],
     incoming: [],
+    nearMisses: [],
     contacts: [],
   };
 }
@@ -67,6 +69,7 @@ function clonePlayer(player: PlayerState): PlayerState {
     shots: [...player.shots],
     hits: [...player.hits],
     incoming: [...player.incoming],
+    nearMisses: [...player.nearMisses],
     contacts: [...player.contacts],
   };
 }
@@ -380,6 +383,21 @@ export function applyCommand(
       actor.shots.push(...cells);
       actor.hits.push(...hits);
       opponent.incoming.push(...hits);
+
+      // Misses that landed next to a still-alive ship are shown to the defender.
+      for (const cell of cells) {
+        if (hits.includes(cell) || opponent.nearMisses.includes(cell)) {
+          continue;
+        }
+        const touchesAlive = opponent.fleet.some(
+          (candidate) =>
+            candidate.hp > 0 && cellsOf(candidate).some((shipCell) => areAdjacent(cell, shipCell)),
+        );
+        if (touchesAlive) {
+          opponent.nearMisses.push(cell);
+        }
+      }
+
       result = { kind: 'attack', ship: ship.id, hits, sunk };
 
       if (opponent.fleet.length > 0 && opponent.fleet.every((candidate) => candidate.hp === 0)) {
@@ -482,6 +500,7 @@ export function viewFor(state: GameState, role: Role): PlayerView {
     myShots: [...own.shots],
     myHits: [...own.hits],
     myIncoming: [...own.incoming],
+    myNearMisses: [...own.nearMisses],
     contacts: [...own.contacts],
     rematch: { host: state.players.host.rematch, guest: state.players.guest.rematch },
     winner: state.winner === null ? null : state.winner === role ? 'me' : 'peer',

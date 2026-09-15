@@ -117,3 +117,8 @@ export function sonarCells(target: number): number[] {
 export function manhattan(a: number, b: number): number {
   return Math.abs(rowOf(a) - rowOf(b)) + Math.abs(colOf(a) - colOf(b));
 }
+
+/** Whether two cells touch, including diagonals (king moves). */
+export function areAdjacent(a: number, b: number): boolean {
+  return a !== b && Math.abs(rowOf(a) - rowOf(b)) <= 1 && Math.abs(colOf(a) - colOf(b)) <= 1;
+}

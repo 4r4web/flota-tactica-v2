@@ -168,6 +168,7 @@ export function BattleView({ view }: { view: PlayerView }) {
           }))}
           selectedShipId={selectedShip}
           hits={view.myIncoming}
+          shots={view.myNearMisses}
           onCellClick={(cell) => {
             const ship = view.myFleet.find((candidate) => cellsOf(candidate).includes(cell));
             if (ship !== undefined) {

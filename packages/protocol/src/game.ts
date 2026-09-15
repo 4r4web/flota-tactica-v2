@@ -94,6 +94,7 @@ export const PlayerView = z.object({
   myShots: z.array(Cell),
   myHits: z.array(Cell),
   myIncoming: z.array(Cell),
+  myNearMisses: z.array(Cell),
   contacts: z.array(Cell),
   rematch: z.object({ host: z.boolean(), guest: z.boolean() }),
   winner: z.enum(['me', 'peer']).nullable(),

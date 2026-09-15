@@ -102,6 +102,7 @@ describe('PlayerView', () => {
     myShots: [],
     myHits: [],
     myIncoming: [],
+    myNearMisses: [],
     contacts: [],
     rematch: { host: false, guest: false },
     winner: null,
