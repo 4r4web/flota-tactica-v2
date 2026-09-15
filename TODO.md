@@ -38,6 +38,8 @@ Marcado como `[ ]` lo pendiente y `[x]` lo ya resuelto. Se irá actualizando.
 ## Mejoras recomendadas (no bloqueantes)
 
 ### Producto y UX
+- [ ] **Decidir y registrar el modelo de monetización** (ver `docs/16-monetizacion.md`): freemium sin pay-to-win (cosméticos + suscripción + packs de contenido).
+- [ ] **Telemetría de retención** (partidas completadas, jugadores que vuelven) antes de cobrar nada.
 - [ ] **Reexportar `submarine.png` a 210×70** (3 tramos) desde el fuente. Hoy es un reescalado del de 4 tramos, algo comprimido.
 - [ ] **Iconos PNG 192/512 + maskable** para la instalación óptima de la PWA en Android (hoy solo hay SVG).
 - [ ] **Sprite continuo del barco seleccionado** (opcional): hoy hay un contorno único, pero persiste el hueco entre celdas (`docs/` y conversación).

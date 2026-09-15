@@ -22,6 +22,7 @@ Juego táctico naval por turnos para 2 jugadores. Re-implementación con arquite
 | [13 — Comparativa de hosting](docs/13-comparativa-hosting.md) | VPS vs Cloudflare vs Firebase/Supabase |
 | [14 — Beta en Windows](docs/14-beta-windows.md) | Alojar la beta en un PC con Windows |
 | [15 — URL fija](docs/15-url-fija.md) | Tailscale Funnel, Cloudflare Named Tunnel o DuckDNS |
+| [16 — Monetización](docs/16-monetizacion.md) | Modelos, casos de éxito y recomendación |
 | [TODO](TODO.md) | Pendientes antes de pasar a producción |
 
 ## Estructura
