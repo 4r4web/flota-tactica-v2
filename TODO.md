@@ -46,6 +46,16 @@ Marcado como `[ ]` lo pendiente y `[x]` lo ya resuelto. Se irá actualizando.
 - [ ] **Historial de partidas y estadísticas** por usuario (fuera del MVP; el esquema ya guarda `games`, `game_players`, `game_events`).
 - [ ] **Backlog de producto**: espectadores, torneos, más barcos/modos (`docs/06-roadmap.md`).
 
+### Modalidades de juego
+Actualmente solo existe la **partida en directo** (por turnos, ambos conectados, resolución inmediata). Añadir dos modalidades nuevas:
+
+- [ ] **Partida diferida (asíncrona / por correspondencia).** Sin tiempo por turno: cada jugador mueve cuando quiere, **sin necesidad de conexión activa** ni de controlar si el rival está offline. El estado vive en el servidor y **solo se notifica al rival cuando el jugador en turno termina su turno** (notificación push / email).
+  - Requiere: persistencia de partidas de larga duración (TTL amplio), notificaciones (Web Push y/o email), y separar el modelo de "partida en vivo" del de "partida persistente".
+- [ ] **Partida por tiempo (reloj de ajedrez).** Cada jugador dispone de **"X" minutos para todas sus acciones a lo largo de la partida**; su contador **solo corre cuando es su turno**. Al agotarse, se pierde por tiempo.
+  - Requiere: reloj autoritativo en el servidor (inicio/parada por turno), control de consumo por jugador, y condición de fin por tiempo agotado.
+
+> Ambas afectan al **modelo de turnos y al protocolo** (hoy asumen partida en vivo con resolución inmediata). Conviene registrarlas como ADR antes de implementarlas.
+
 ### Administración
 - [ ] **Portal de administración separado** (`apps/admin`) o herramienta de BI (Metabase/Grafana) contra una réplica de solo lectura, servido **solo por Tailscale** y con auth endurecida (MFA, audit log). Ver ADR-029. Hoy existe `/admin` dentro de la app (suficiente para la beta).
 - [ ] **Historial y estadísticas para el usuario final** (no solo admin): sus partidas, resultados y evolución.
